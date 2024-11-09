@@ -1,11 +1,11 @@
-import { View, Text, XStack } from "tamagui";
 import { OnboardingSlides } from "@/components/OnboardingSlides";
-import { Button, Icon } from "@/components/base";
+import { Button, Icon, SafeArea } from "@/components/base";
 import { Link } from "expo-router";
+import { View, XStack } from "tamagui";
 
 const Onboarding = () => {
   return (
-    <View flex={1} bg="$background">
+    <SafeArea flex={1} bg="$background" edges={["left", "right", "bottom"]}>
       <View f={1}>
         <OnboardingSlides />
       </View>
@@ -24,7 +24,7 @@ const Onboarding = () => {
           </Button>
         </Link>
       </XStack>
-    </View>
+    </SafeArea>
   );
 };
 

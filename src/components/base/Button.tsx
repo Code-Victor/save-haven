@@ -300,19 +300,15 @@ export const ButtonText = styled(Text, {
   context: ButtonContext,
   ff: "$dmSans",
   userSelect: "none",
+  fontWeight: "500",
   variants: {
     size: {
       sm: {
         fontSize: "$2",
         lineHeight: "$2",
-        fontWeight: "400",
       },
-      md: {
-        fontWeight: "500",
-      },
-      lg: {
-        fontWeight: "500",
-      },
+      md: {},
+      lg: {},
     },
     variant: {
       primary: {
@@ -322,7 +318,7 @@ export const ButtonText = styled(Text, {
         color: "$purple9",
       },
       ghost: {
-        color: "$purple9",
+        color: "$purple6",
       },
       gray: {
         color: "$white1",
@@ -354,7 +350,7 @@ const ButtonIcon = (props: { children: IconType }) => {
     throw new Error("ButtonIcon must have exactly one child");
   }
   return cloneElement(props.children, {
-    size: iconSize[size],
+    size: props.children.props.size || iconSize[size],
 
     color: props.children.props.color || iconColor[variant],
   });
@@ -382,8 +378,8 @@ const IconButtonIcon = (props: { children: IconType }) => {
     throw new Error("IconButtonIcon must have exactly one child");
   }
   return cloneElement(props.children, {
-    size: iconButtonSize[size],
-    color: iconColor[variant],
+    size: props.children.props.size || iconButtonSize[size],
+    color: props.children.props.color || iconColor[variant],
   });
 };
 export const Button = withStaticProperties(ButtonFrameImpl, {

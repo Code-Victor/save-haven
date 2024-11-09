@@ -1,20 +1,34 @@
 import { Platform } from "react-native";
 import { Tabs } from "expo-router/tabs";
-import { getTokens, YStack } from "tamagui";
+import { getTokens, useTheme, YStack } from "tamagui";
 
 import { Text } from "@/components/base";
-import { RemixIcon } from "@/components/base/Icon";
+import { Icon } from "@/components/base/Icon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TABBAR_HEIGHT, TABBAR_OFFSET } from "@/constants";
 
 export default function TabsLayout() {
+  const { bottom } = useSafeAreaInsets();
+  const theme = useTheme();
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: getTokens().color["$brand.primary"].val,
-        tabBarInactiveTintColor: getTokens().color["$neutral.gray3"].val,
+        tabBarActiveTintColor: theme.white1.val,
+        tabBarInactiveTintColor: theme.white10.val,
+        headerTitleAlign: "center",
+        headerTitleStyle: {
+          fontFamily: "gilroySemibold",
+        },
         tabBarStyle: {
-          height: Platform.OS === "ios" ? 78 : 64,
+          height: TABBAR_HEIGHT,
           paddingBottom: 4,
+          position: "absolute",
+          bottom: bottom + TABBAR_OFFSET,
+          width: "90%",
+          marginHorizontal: "5%",
+          borderRadius: 16,
+          borderTopColor: "transparent",
+          backgroundColor: theme.purple6.val,
         },
         tabBarLabelStyle: {
           fontFamily: "gilroyMedium",
@@ -31,9 +45,10 @@ export default function TabsLayout() {
         options={{
           href: "/",
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color, focused }) => (
-            <RemixIcon
-              name={focused ? "home-fill" : "home-line"}
+            <Icon
+              name={focused ? "ri:home-fill" : "ri:home-line"}
               color={color}
               size={24}
             />
@@ -41,14 +56,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="shop"
+        name="savings"
         options={{
-          href: "/shop",
-          title: "Shop",
-          tabBarBadge: "New",
+          href: "/savings",
+          title: "Savings",
+
           tabBarIcon: ({ color, focused }) => (
-            <RemixIcon
-              name={focused ? "shopping-bag-4-fill" : "shopping-bag-4-line"}
+            <Icon
+              name={focused ? "ri:bank-fill" : "ri:bank-line"}
               color={color}
               size={24}
             />
@@ -56,15 +71,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="history"
         options={{
-          href: "/orders",
-          title: "Orders",
+          href: "/history",
+          title: "History",
           tabBarIcon: ({ color, focused }) => (
-            <RemixIcon
-              name={
-                focused ? "calendar-schedule-fill" : "calendar-schedule-line"
-              }
+            <Icon
+              name={focused ? "ri:history-fill" : "ri:history-line"}
               color={color}
               size={24}
             />
@@ -77,8 +90,8 @@ export default function TabsLayout() {
           href: "/profile",
           title: "Profile",
           tabBarIcon: ({ color, focused }) => (
-            <RemixIcon
-              name={focused ? "user-3-fill" : "user-3-line"}
+            <Icon
+              name={focused ? "ri:user-6-fill" : "ri:user-6-line"}
               color={color}
               size={24}
             />

@@ -7,7 +7,7 @@ import {
   Text,
 } from "@/components/base";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { View, YStack } from "tamagui";
@@ -18,12 +18,14 @@ const signupFormSchema = z.object({
 });
 type SignupFormSchema = z.infer<typeof signupFormSchema>;
 const Signup = () => {
+  const router = useRouter();
   const { control, handleSubmit } = useForm<SignupFormSchema>({
     resolver: zodResolver(signupFormSchema),
   });
 
   const onSubmit = (data: SignupFormSchema) => {
     console.log(data);
+    router.push("/verify-email");
   };
   return (
     <SafeArea flex={1} bg="$background">

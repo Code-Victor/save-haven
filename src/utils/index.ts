@@ -1,9 +1,9 @@
 import { SUPPORT_PHONE_NUMBER, SUPPORT_PROMPT } from "@/constants";
 import { AxiosError } from "axios";
-// import * as Application from "expo-application";
+import * as Application from "expo-application";
 import { openURL } from "expo-linking";
 import { Platform } from "expo-modules-core";
-// import * as SecureStore from "expo-secure-store";
+import * as SecureStore from "expo-secure-store";
 import { ToastAndroid } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 
@@ -141,20 +141,20 @@ function getOrdinalSuffix(day: number): string {
  * Android (assumed to be iOS), it retrieves the device ID from SecureStore using the key
  * `IOS_DEVICE_ID_KEY`. If the device ID is not found in SecureStore, it generates a new
  */
-// export const getDeviceId = async () => {
-//   if (Platform.OS === "android") {
-//     return Application.getAndroidId();
-//   } else {
-//     let deviceId = await SecureStore.getItemAsync(IOS_DEVICE_ID_KEY);
+export const getDeviceId = async () => {
+  if (Platform.OS === "android") {
+    return Application.getAndroidId();
+  } else {
+    let deviceId = await SecureStore.getItemAsync(IOS_DEVICE_ID_KEY);
 
-//     if (!deviceId) {
-//       deviceId = uuidv4();
-//       await SecureStore.setItemAsync(IOS_DEVICE_ID_KEY, deviceId);
-//     }
+    if (!deviceId) {
+      deviceId = uuidv4();
+      await SecureStore.setItemAsync(IOS_DEVICE_ID_KEY, deviceId);
+    }
 
-//     return deviceId;
-//   }
-// };
+    return deviceId;
+  }
+};
 
 /**
  * The function setToken asynchronously stores a token in SecureStore based on the provided
@@ -162,16 +162,16 @@ function getOrdinalSuffix(day: number): string {
  * @param config - The `setToken` function takes a configuration object as a parameter with the
  * following properties:
  */
-// export async function setToken(config: { token: string; otp?: boolean }) {
-//   try {
-//     await SecureStore.setItemAsync(
-//       config.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY,
-//       config.token
-//     );
-//   } catch (e) {
-//     console.log("Failed to store token:", e);
-//   }
-// }
+export async function setToken(config: { token: string; otp?: boolean }) {
+  try {
+    await SecureStore.setItemAsync(
+      config.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY,
+      config.token
+    );
+  } catch (e) {
+    console.log("Failed to store token:", e);
+  }
+}
 
 /**
  * The function `getToken` asynchronously retrieves a token from SecureStore based on the configuration
@@ -183,17 +183,17 @@ function getOrdinalSuffix(day: number): string {
  * retrieves the OTP token using the `OTP_TOKEN_KEY`. Otherwise, it retrieves the access token using
  * the `ACCESS_TOKEN_KEY`. The retrieved token value is returned by the function.
  */
-// export async function getToken(config?: { otp?: boolean }) {
-//   try {
-//     const result = await SecureStore.getItemAsync(
-//       config?.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY
-//     );
+export async function getToken(config?: { otp?: boolean }) {
+  try {
+    const result = await SecureStore.getItemAsync(
+      config?.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY
+    );
 
-//     return result;
-//   } catch (e) {
-//     console.log("Failed to get token:", e);
-//   }
-// }
+    return result;
+  } catch (e) {
+    console.log("Failed to get token:", e);
+  }
+}
 
 /**
  * The function `clearToken` clears either an OTP token or an access token stored in SecureStore.
@@ -202,16 +202,16 @@ function getOrdinalSuffix(day: number): string {
  * the function will clear the OTP token using the `OTP_TOKEN_KEY`, otherwise, it will clear the access
  * token
  */
-// export async function clearToken(config: { otp?: boolean }) {
-//   try {
-//     await SecureStore.setItemAsync(
-//       config.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY,
-//       ""
-//     );
-//   } catch (e) {
-//     console.log("Failed to delete token:", e);
-//   }
-// }
+export async function clearToken(config: { otp?: boolean }) {
+  try {
+    await SecureStore.setItemAsync(
+      config.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY,
+      ""
+    );
+  } catch (e) {
+    console.log("Failed to delete token:", e);
+  }
+}
 
 export enum ErrorSeverity {
   INFO = "info",

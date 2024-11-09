@@ -16,17 +16,12 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { StatusBar, useColorScheme } from "react-native";
 import BootSplash from "react-native-bootsplash";
-import { TamaguiProvider, YStack } from "tamagui";
+import { TamaguiProvider, useTheme, YStack } from "tamagui";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from "expo-router";
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: "(tabs)",
-};
 
 export default function RootLayout() {
   const [fontsLoaded, fontsError] = useFontsLoaded();
@@ -45,14 +40,12 @@ export default function RootLayout() {
 
   return (
     <Providers>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={DefaultTheme}>
+        {/* <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}> */}
         <StatusBar
           barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
         />
-        <Stack
-          initialRouteName="/(protected)/(tabs)"
-          screenOptions={{ headerShown: false }}
-        />
+        <NavigationLayout />
         <OfflineBanner />
       </ThemeProvider>
     </Providers>
@@ -62,7 +55,7 @@ export default function RootLayout() {
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const colorScheme = useColorScheme();
   return (
-    <KeyboardProvider statusBarTranslucent>
+    <KeyboardProvider>
       <TamaguiProvider
         config={config}
         // defaultTheme={colorScheme === "dark" ? "dark" : "light"}
@@ -78,6 +71,26 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+export function NavigationLayout() {
+  const theme = useTheme();
+  const user = false;
+  return (
+    <Stack
+      initialRouteName={!user ? "/onboarding" : "/(protected)/(tabs)"}
+      screenOptions={{
+        headerShown: false,
+        animation: "slide_from_right",
+        gestureEnabled: true,
+        gestureDirection: "horizontal",
+        animationDuration: 400,
+        contentStyle: {
+          backgroundColor: theme.background.val,
+        },
+      }}
+    />
+  );
+}
+
 export function CurrentToast() {
   const currentToast = useToastState();
 
@@ -90,9 +103,9 @@ export function CurrentToast() {
       viewportName={currentToast.viewportName}
       enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
       exitStyle={{ opacity: 0, scale: 1, y: -20 }}
-      // theme="purple"
+      theme="purple"
       borderRadius={"$6"}
-      // animation="quick"
+      animation="quick"
     >
       <YStack ai="center" p="$2" gap="$2">
         <Toast.Title fontWeight="bold">{currentToast.title}</Toast.Title>

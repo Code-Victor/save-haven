@@ -7,7 +7,11 @@ import {
 } from "@tamagui/core";
 import React from "react";
 import { Keyboard, TextInput } from "react-native";
-import Animated from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  FadeOutDown,
+} from "react-native-reanimated";
 import {
   Text,
   AnimatePresence,
@@ -193,166 +197,61 @@ const InputSubText = styled(Text, {
   },
 });
 
-export const OTPInputContainer = styled(Animated.View, {
-  justifyContent: "center",
-  alignItems: "center",
-});
-
-const OTPInput = ({
-  value: controlledValue,
-  onChangeText: controlledOnChangeText,
-  maximumLength = 4,
-  setIsPinReady,
-  error = false,
-}: {
+// Types
+interface OTPInputProps {
   value?: string;
   onChangeText?: (code: string) => void;
   maximumLength?: number;
   setIsPinReady?: (val: boolean) => void;
   error?: boolean;
-}) => {
-  const { shake, rStyle } = useAnimatedShake();
+  /** Callback when OTP is completed */
+  onComplete?: (code: string) => void;
+  /** Auto focus on mount */
+  autoFocus?: boolean;
+  /** Box size */
+  boxSize?: number;
+  /** Gap between boxes */
+  gap?: number;
+  /** Custom box styles for different states */
+  boxStyles?: Partial<Record<BoxState, object>>;
+}
 
-  const [value, onChangeText] = useControllableState({
-    prop: controlledValue,
-    defaultProp: "",
-    onChange: controlledOnChangeText,
-  });
-  const { setFocused, focused } = FocusContext.useStyledContext();
-  const inputRef = React.useRef<TextInput>(null);
-  const boxArray = new Array(maximumLength).fill(null);
+type BoxState = "default" | "focused" | "error" | "filled";
 
-  const handleOnPress = () => {
-    inputRef.current?.focus();
-  };
-
-  React.useEffect(() => {
-    if (setIsPinReady && value) {
-      // update pin ready status
-      setIsPinReady(value.length === maximumLength);
-      // clean up function
-      return () => {
-        setIsPinReady(false);
-      };
-    }
-  }, [value]);
-  React.useEffect(() => {
-    const listner = Keyboard.addListener("keyboardDidHide", () => {
-      setFocused(false);
-      inputRef.current?.blur();
-    });
-    return () => {
-      listner.remove();
-    };
-  }, []);
-  React.useEffect(() => {
-    if (error) {
-      shake();
-    }
-  }, [error]);
-
-  const boxDigit = (_: unknown, index: number) => {
-    const emptyInput = "";
-    const digit = value[index] || emptyInput;
-    const isCurrentValue = index === value.length;
-    const isLastValue = index === maximumLength - 1;
-    const isCodeComplete = value.length === maximumLength;
-
-    const isValueFocused = isCurrentValue || (isLastValue && isCodeComplete);
-    const isFocused = focused && isValueFocused;
-    return (
-      <SplitBox
-        state={error ? "error" : isFocused ? "focused" : "default"}
-        key={index}
-        onPress={handleOnPress}
-      >
-        <AnimatePresence>
-          {digit ? (
-            <Text
-              fontSize={"$4"}
-              color="$neutral.gray1"
-              fontWeight={"600"}
-              animation="quick"
-              enterStyle={{
-                opacity: 0,
-                transform: [
-                  {
-                    translateY: 10,
-                  },
-                ],
-              }}
-              exitStyle={{
-                opacity: 0,
-                transform: [
-                  {
-                    translateY: 10,
-                  },
-                ],
-              }}
-              opacity={1}
-              transform={[
-                {
-                  translateY: 0,
-                },
-              ]}
-            >
-              {digit}
-            </Text>
-          ) : null}
-        </AnimatePresence>
-      </SplitBox>
-    );
-  };
-
-  return (
-    <OTPInputContainer style={rStyle}>
-      <SplitBoxesContainer>{boxArray.map(boxDigit)}</SplitBoxesContainer>
-      <TInput
-        ref={inputRef}
-        fontFamily={"$gilroy"}
-        value={value}
-        onChangeText={onChangeText}
-        maxLength={maximumLength}
-        onFocus={() => {
-          setFocused(true);
-        }}
-        onBlur={() => setFocused(false)}
-        keyboardType="number-pad"
-        pos="absolute"
-        top={0}
-        left={0}
-        opacity={0}
-        width={0}
-        height={0}
-      />
-    </OTPInputContainer>
-  );
-};
+// Styled components with better typing
+const OTPInputContainer = styled(Animated.View, {
+  justifyContent: "center",
+  alignItems: "center",
+  width: "100%",
+});
 
 const SplitBoxesContainer = styled(View, {
   flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
   width: "100%",
-  gap: "$2",
 });
+
 const SplitBox = styled(View, {
-  width: 50,
-  height: 50,
-  borderRadius: 5,
-  borderWidth: 1,
   justifyContent: "center",
   alignItems: "center",
+  borderWidth: 1,
+  borderRadius: 5,
+  overflow: "hidden",
   variants: {
     state: {
       default: {
-        borderColor: "$neutral.gray4",
+        borderColor: "$purple3",
       },
       focused: {
-        borderColor: "$neutral.gray2",
+        borderColor: "$purple6",
       },
       error: {
         borderColor: "red",
+      },
+      filled: {
+        borderColor: "$black5",
+        backgroundColor: "$gray1",
       },
     },
   } as const,
@@ -361,8 +260,178 @@ const SplitBox = styled(View, {
   },
 });
 
-export default OTPInput;
+const HiddenTextInput = styled(TInput, {
+  position: "absolute",
+  width: 0,
+  height: 0,
+  opacity: 0,
+  fontFamily: "$gilroy",
+});
 
+// Memoized box digit component
+const BoxDigit = React.memo(
+  ({
+    digit,
+    isFocused,
+    error,
+    onPress,
+    size,
+    customStyle,
+  }: {
+    digit: string;
+    isFocused: boolean;
+    error: boolean;
+    onPress: () => void;
+    size: number;
+    customStyle?: object;
+  }) => {
+    const state: BoxState = error
+      ? "error"
+      : digit
+        ? "filled"
+        : isFocused
+          ? "focused"
+          : "default";
+
+    return (
+      <SplitBox
+        state={state}
+        onPress={onPress}
+        style={[{ width: size, height: size }, customStyle]}
+      >
+        {digit ? (
+          <Animated.View entering={FadeInDown} exiting={FadeOutDown}>
+            <Text
+              fontSize="$4"
+              color="$black5"
+              fontFamily="$gilroy"
+              fontWeight="600"
+            >
+              {digit}
+            </Text>
+          </Animated.View>
+        ) : null}
+      </SplitBox>
+    );
+  }
+);
+
+export const OTPInput: React.FC<OTPInputProps> = ({
+  value: controlledValue,
+  onChangeText: controlledOnChangeText,
+  maximumLength = 4,
+  setIsPinReady,
+  error = false,
+  onComplete,
+  autoFocus = false,
+  boxSize = 50,
+  gap = 8,
+  boxStyles,
+}) => {
+  const { shake, rStyle } = useAnimatedShake();
+  const inputRef = React.useRef<TextInput>(null);
+  const { setFocused, focused } = FocusContext.useStyledContext();
+
+  const [value, onChangeText] = useControllableState({
+    prop: controlledValue,
+    defaultProp: "",
+    onChange: (newValue) => {
+      controlledOnChangeText?.(newValue);
+      if (newValue.length === maximumLength) {
+        onComplete?.(newValue);
+      }
+    },
+  });
+
+  const handleOnPress = React.useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Effect for pin ready status
+  React.useEffect(() => {
+    if (setIsPinReady && value) {
+      const isPinReady = value.length === maximumLength;
+      setIsPinReady(isPinReady);
+      return () => setIsPinReady(false);
+    }
+  }, [value, maximumLength, setIsPinReady]);
+
+  // Effect for keyboard hide
+  React.useEffect(() => {
+    const listener = Keyboard.addListener("keyboardDidHide", () => {
+      setFocused(false);
+      inputRef.current?.blur();
+    });
+    return () => listener.remove();
+  }, [setFocused]);
+
+  // Effect for error animation
+  React.useEffect(() => {
+    if (error) shake();
+  }, [error, shake]);
+
+  const renderBoxDigit = React.useCallback(
+    (_, index: number) => {
+      const digit = value[index] || "";
+      const isCurrentValue = index === value.length;
+      const isLastValue = index === maximumLength - 1;
+      const isCodeComplete = value.length === maximumLength;
+      const isValueFocused = isCurrentValue || (isLastValue && isCodeComplete);
+      const isFocused = focused && isValueFocused;
+
+      return (
+        <BoxDigit
+          key={index}
+          digit={digit}
+          isFocused={isFocused}
+          error={error}
+          onPress={handleOnPress}
+          size={boxSize}
+          customStyle={[
+            { marginRight: index < maximumLength - 1 ? gap : 0 },
+            boxStyles?.[
+              error
+                ? "error"
+                : isFocused
+                  ? "focused"
+                  : digit
+                    ? "filled"
+                    : "default"
+            ],
+          ]}
+        />
+      );
+    },
+    [
+      value,
+      focused,
+      error,
+      maximumLength,
+      handleOnPress,
+      boxSize,
+      gap,
+      boxStyles,
+    ]
+  );
+
+  return (
+    <OTPInputContainer style={rStyle}>
+      <SplitBoxesContainer>
+        {Array(maximumLength).fill(null).map(renderBoxDigit)}
+      </SplitBoxesContainer>
+      <HiddenTextInput
+        ref={inputRef}
+        value={value}
+        onChangeText={onChangeText}
+        maxLength={maximumLength}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        keyboardType="number-pad"
+        fontFamily="$gilroy"
+      />
+    </OTPInputContainer>
+  );
+};
 /* 
 Usage:
 ```tsx

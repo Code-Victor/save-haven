@@ -50,7 +50,7 @@ const dmSans = createFont({
   },
 });
 const gilroy = createFont({
-  family: "Gilrooy",
+  family: "Gilroy",
   size: fontSizes,
   // Simulating lineHeight: 1.3 or 130% in avenir font
   lineHeight: Object.fromEntries(
@@ -82,6 +82,7 @@ const gilroy = createFont({
 
 export const fonts = {
   dmSans,
+  body: dmSans,
   gilroy,
 };
 // #endregion
