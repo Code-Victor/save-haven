@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "Save Haven",
+    "slug": "save-haven",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.savehaven.client"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./src/assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./src/assets/fonts/Gilroy-Regular.otf",
+            "./src/assets/fonts/Gilroy-Medium.otf",
+            "./src/assets/fonts/Gilroy-Semibold.otf",
+            "./src/assets/fonts/Gilroy-Bold.otf",
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_400Regular.ttf",
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_500Medium.ttf",
+            "node_modules/@expo-google-fonts/dm-sans/DMSans_700Bold.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-build-properties"
+      ],
+      [
+        "react-native-bootsplash",
+        {
+          "assetsDir": "./src/assets/bootsplash"
+        }
+      ],
+      "expo-secure-store",
+      "react-native-edge-to-edge"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "237e5a2d-7171-4521-a29a-47773b5af22f"
+      }
+    },
+    "owner": "oluwaborihamzat"
+  }
+}
