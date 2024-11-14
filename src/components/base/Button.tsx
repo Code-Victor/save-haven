@@ -12,7 +12,14 @@ import { IconType } from "@/types";
 import React, { cloneElement, useContext } from "react";
 
 type Size = "sm" | "md" | "lg";
-type Variant = "primary" | "outlined" | "ghost" | "gray" | "unstyled";
+type Variant =
+  | "primary"
+  | "secondary"
+  | "secondary-light"
+  | "outlined"
+  | "ghost"
+  | "gray"
+  | "unstyled";
 const defaultContextValues = {
   size: "md" as Size,
   variant: "primary" as Variant,
@@ -20,7 +27,7 @@ const defaultContextValues = {
 export const ButtonContext = createStyledContext(defaultContextValues);
 
 const buttonHeight = {
-  sm: 32,
+  sm: 40,
   md: 48,
   lg: 54,
 } satisfies Record<Size, number>;
@@ -72,6 +79,22 @@ export const ButtonFrame = styled(View, {
         borderColor: "$purple6",
         pressStyle: {
           opacity: 0.9,
+        },
+      },
+      secondary: {
+        backgroundColor: "$green6",
+        borderWidth: 1,
+        borderColor: "$green6",
+        pressStyle: {
+          opacity: 0.9,
+        },
+      },
+      "secondary-light": {
+        backgroundColor: "$green2",
+        borderWidth: 1,
+        borderColor: "$green2",
+        pressStyle: {
+          backgroundColor: "$green3",
         },
       },
 
@@ -314,6 +337,12 @@ export const ButtonText = styled(Text, {
       primary: {
         color: "$white2",
       },
+      secondary: {
+        color: "$purple9",
+      },
+      "secondary-light": {
+        color: "$purple9",
+      },
       outlined: {
         color: "$purple9",
       },
@@ -337,6 +366,8 @@ const ButtonIcon = (props: { children: IconType }) => {
   const iconColor = React.useMemo(
     () => ({
       primary: theme.white2.val,
+      secondary: theme.purple9.val,
+      "secondary-light": theme.purple9.val,
       outlined: theme.purple9.val,
       ghost: theme.purple9.val,
       gray: theme.white1.val,
@@ -366,6 +397,8 @@ const IconButtonIcon = (props: { children: IconType }) => {
   const iconColor = React.useMemo(
     () => ({
       primary: theme.white2.val,
+      secondary: theme.purple9.val,
+      "secondary-light": theme.purple9.val,
       outlined: theme.purple9.val,
       ghost: theme.purple9.val,
       gray: theme.white1.val,

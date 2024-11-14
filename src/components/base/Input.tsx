@@ -21,7 +21,7 @@ import {
 } from "tamagui";
 
 type Size = "sm" | "md" | "lg";
-type Variant = "outlined";
+type Variant = "outlined" | "grey";
 export const InputContext = createStyledContext({
   size: "md" as Size,
   variant: "outlined" as Variant,
@@ -45,6 +45,7 @@ export const InputGroupFrame = styled(View, {
     },
     variant: {
       outlined: {},
+      grey: {},
     },
   } as const,
 });
@@ -89,6 +90,9 @@ export const InputLabel = styled(Text, {
       outlined: {
         color: "#000000",
       },
+      grey: {
+        color: "#4D515B",
+      },
     },
   } as const,
 });
@@ -98,6 +102,10 @@ const InputBox = styled(View, {
   context: InputContext,
   flexDirection: "row",
   ai: "center",
+  borderRadius: 8,
+  animateOnly: ["backgroundColor"],
+  animation: "100ms",
+
   variants: {
     size: {
       sm: {
@@ -114,16 +122,18 @@ const InputBox = styled(View, {
     },
     variant: {
       outlined: {
-        borderRadius: 4,
         borderWidth: 1,
         borderColor: "#6D7280",
         bg: "transparent",
+        focusStyle: {
+          borderColor: "#333333",
+        },
       },
-    },
-    applyFocusStyle: {
-      true: {
-        borderColor: "#333333",
-        bg: "transparent",
+      grey: {
+        bg: "#F0F1F2",
+        focusStyle: {
+          bg: "#e6e8e9",
+        },
       },
     },
   } as const,
@@ -131,10 +141,8 @@ const InputBox = styled(View, {
 
 const InputBoxImpl = InputBox.styleable((props, forwardedRef) => {
   const { children, ...rest } = props;
-  const { focused } = FocusContext.useStyledContext();
-
   return (
-    <InputBox applyFocusStyle={focused} ref={forwardedRef} {...rest}>
+    <InputBox ref={forwardedRef} {...rest}>
       {children}
     </InputBox>
   );
@@ -145,7 +153,7 @@ const InputFrame = styled(TInput, {
   unstyled: true,
   context: InputContext,
   fontFamily: "$gilroy",
-  fow: "400",
+  fow: "500",
   color: "#000",
   flex: 1,
   p: 0,
@@ -172,9 +180,13 @@ const InputImpl = InputFrame.styleable((props, ref) => {
     <InputFrame
       ref={ref}
       onFocus={() => {
+        console.log("onFocus");
         setFocused(true);
       }}
-      onBlur={() => setFocused(false)}
+      onBlur={() => {
+        console.log("onBlur");
+        setFocused(false);
+      }}
       size={size}
       {...rest}
     />
