@@ -1,8 +1,11 @@
-import { SafeArea, Text } from "@/components/base";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ScrollView, useTheme, YStack, XStack } from "tamagui";
-import { Image } from "expo-image";
+import { Text } from "@/components/base";
 import { TABBAR_HEIGHT_OFFSET } from "@/constants";
+import { savingsOptions } from "@/data";
+import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScrollView, useTheme, XStack, YStack } from "tamagui";
+import { useRouter } from "expo-router";
+import * as React from "react";
 
 export default function SavingsTab() {
   const theme = useTheme();
@@ -28,38 +31,12 @@ export default function SavingsTab() {
     </ScrollView>
   );
 }
-const savingsOptions = [
-  {
-    name: "Target Savings",
-    description: "Save with discipline towards a specific goal or project",
-    icon: require("@/assets/images/target.png"),
-    color: "#EAE6EC",
-  },
-  {
-    name: "Group Savings",
-    description:
-      "Save and take turns to receive funds for your goals or business.",
-    icon: require("@/assets/images/group.png"),
-    color: "#E7F8F6",
-  },
-  {
-    name: "Crowdfunding",
-    description:
-      "Raise funds together to achieve your dreams, launch a business, or support a cause.",
-    icon: require("@/assets/images/crowdfunding.png"),
-    color: "#FFF6ED",
-  },
-  {
-    name: "Subscription",
-    description:
-      "Join friends or app users to share the cost of your Spotify, Apple Music, or YouTube subscription.",
-    icon: require("@/assets/images/subscription.png"),
-    comingSoon: true,
-    color: "#F3F6FF",
-  },
-];
 
 function SavingOption(props: (typeof savingsOptions)[0]) {
+  const router = useRouter();
+  const onPress = React.useCallback(() => {
+    router.push(props.href);
+  }, [props.href]);
   return (
     <XStack
       gap="$3"
@@ -69,7 +46,10 @@ function SavingOption(props: (typeof savingsOptions)[0]) {
       bg={props.color}
       br={16}
       animation="100ms"
+      disabled={props.comingSoon}
+      opacity={props.comingSoon ? 0.5 : 1}
       transform={[{ scale: 1 }]}
+      onPress={onPress}
       pressStyle={{
         transform: [
           {
@@ -79,7 +59,7 @@ function SavingOption(props: (typeof savingsOptions)[0]) {
       }}
     >
       <YStack gap="$4" py="$2.5" f={1}>
-        <Text fos="$6" fow="600">
+        <Text fontFamily="$gilroy" fos="$6" fow="600">
           {props.name}
         </Text>
         <Text fos="$2" fow="500">
@@ -95,11 +75,6 @@ function SavingOption(props: (typeof savingsOptions)[0]) {
             props.name === "Target Savings" ? [{ scale: 1.5 }] : undefined,
         }}
       />
-      {/* {props.comingSoon && (
-        <Text color="$purple9" fow="600">
-          Coming Soon
-        </Text>
-      )} */}
     </XStack>
   );
 }

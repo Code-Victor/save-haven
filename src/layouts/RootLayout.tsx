@@ -18,6 +18,8 @@ import { StatusBar, useColorScheme } from "react-native";
 import BootSplash from "react-native-bootsplash";
 import { TamaguiProvider, useTheme, YStack } from "tamagui";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SystemBars } from "react-native-edge-to-edge";
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -41,10 +43,6 @@ export default function RootLayout() {
   return (
     <Providers>
       <ThemeProvider value={DefaultTheme}>
-        {/* <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}> */}
-        <StatusBar
-          barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
-        />
         <NavigationLayout />
         <OfflineBanner />
       </ThemeProvider>
@@ -55,7 +53,7 @@ export default function RootLayout() {
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const colorScheme = useColorScheme();
   return (
-    <KeyboardProvider>
+    <KeyboardProvider navigationBarTranslucent statusBarTranslucent>
       <TamaguiProvider
         config={config}
         // defaultTheme={colorScheme === "dark" ? "dark" : "light"}
@@ -75,19 +73,22 @@ export function NavigationLayout() {
   const theme = useTheme();
   const user = false;
   return (
-    <Stack
-      initialRouteName={!user ? "/onboarding" : "/(protected)/(tabs)"}
-      screenOptions={{
-        headerShown: false,
-        animation: "slide_from_right",
-        gestureEnabled: true,
-        gestureDirection: "horizontal",
-        animationDuration: 400,
-        contentStyle: {
-          backgroundColor: theme.background.val,
-        },
-      }}
-    />
+    <>
+      <SystemBars style="light" />
+      <Stack
+        initialRouteName={!user ? "/onboarding" : "/(protected)/(tabs)"}
+        screenOptions={{
+          headerShown: false,
+          animation: "slide_from_right",
+          gestureEnabled: true,
+          gestureDirection: "horizontal",
+          animationDuration: 400,
+          contentStyle: {
+            backgroundColor: theme.background.val,
+          },
+        }}
+      />
+    </>
   );
 }
 
