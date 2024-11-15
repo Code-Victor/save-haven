@@ -11,6 +11,10 @@ export default function DefaultStackLayout({ screenOptions, ...props }: Props) {
           fontFamily: "dmSansBold",
         },
         headerShadowVisible: false,
+        animation: "slide_from_right",
+        gestureEnabled: true,
+        gestureDirection: "horizontal",
+        animationDuration: 400,
         ...screenOptions,
       }}
       {...props}

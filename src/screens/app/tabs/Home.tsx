@@ -33,7 +33,7 @@ function ProfilePanel() {
       />
       <View f={1}>
         <Text fow="500" color="#333333">
-          Hello, John Doe
+          Hello, Hamzat Victor
         </Text>
       </View>
       <XStack gap="$1">
@@ -263,7 +263,7 @@ function AccountNumberBtn() {
         }}
       >
         <Text fow="600" color="$white1">
-          John Doe
+          Hamzat Victor
         </Text>
         <XStack ai="center" gap="$2">
           <Text color="$white1">8067624207</Text>

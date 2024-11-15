@@ -116,6 +116,9 @@ export default function MakeTransfer() {
                         <Sheet modal snapPointsMode="fit">
                           <Sheet.Handle />
                           <Sheet.Frame>
+                            <Text fow="500" fos="$4" ta="center" py="$4">
+                              Choose Bank
+                            </Text>
                             <Adapt.Contents />
                             <View h="$16" />
                           </Sheet.Frame>

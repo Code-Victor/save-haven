@@ -1,11 +1,9 @@
-import { Platform } from "react-native";
 import { Tabs } from "expo-router/tabs";
-import { getTokens, useTheme, YStack } from "tamagui";
+import { useTheme } from "tamagui";
 
-import { Text } from "@/components/base";
 import { Icon } from "@/components/base/Icon";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TABBAR_HEIGHT, TABBAR_OFFSET } from "@/constants";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const { bottom } = useSafeAreaInsets();

@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button, Icon, Input, Text } from "@/components/base";
 import { TABBAR_HEIGHT_OFFSET } from "@/constants";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -23,6 +23,7 @@ import { string, z } from "zod";
 import { Image } from "expo-image";
 import { monify } from "@/utils";
 import { RecentAccounts } from ".";
+import { NumberKeyboard, PINInput } from "@/components/base/PinInput";
 
 const samplePrices = [500.0, 1000.0, 2000.0, 3000.0, 5000.0, 10000.0, 20000.0];
 const completeTransferFormSchema = z.object({
@@ -299,7 +300,8 @@ function PaymentSheet(props: PaymentSheetProps) {
 
       <Sheet.Handle />
       <Sheet.Frame
-        padding="$4"
+        px={0}
+        pt="$4"
         gap="$5"
         bg="white"
         width={"95%"}
@@ -309,7 +311,14 @@ function PaymentSheet(props: PaymentSheetProps) {
         disableHideBottomOverflow
       >
         {paymentCase === "CREATE_PIN" ? (
-          <CreatePinCase />
+          <CreatePinCase next={() => setPaymentCase("ENTER_PIN")} />
+        ) : paymentCase === "ENTER_PIN" ? (
+          <EnterPinCase
+            next={() => {
+              onOpenChange();
+              router.push("/(protected)/transfer/success");
+            }}
+          />
         ) : (
           <DefaultCase
             amount={amount}
@@ -332,7 +341,7 @@ function DefaultCase({
   next?: () => void;
 }) {
   return (
-    <YStack gap="$8">
+    <YStack gap="$8" px="$4">
       <YStack gap="$2" ai="center" pt="$4">
         <Text fos="$2" fow="600" color="$black6" ta="center">
           Amount to Send
@@ -367,41 +376,67 @@ function DefaultCase({
   );
 }
 
-const createPinSchema = z
-  .object({
-    pin: z.string().length(4),
-    confirmPin: z.string().length(4),
-  })
-  .refine((data) => data.pin === data.confirmPin, {
-    message: "Pin does not match",
-  });
+const createPinSchema = z.object({
+  pin: z.string().length(4),
+});
 type CreatePinSchema = z.infer<typeof createPinSchema>;
-function CreatePinCase() {
-  const { control, handleSubmit, setValue } = useForm<CreatePinSchema>({
-    resolver: zodResolver(createPinSchema),
-  });
+function CreatePinCase({ next }: { next?: () => void }) {
+  const { control, handleSubmit, setValue, getValues } =
+    useForm<CreatePinSchema>({
+      resolver: zodResolver(createPinSchema),
+      defaultValues: {
+        pin: "",
+      },
+    });
+
+  const handleNumberPress = React.useCallback(
+    (num: string) => {
+      const { pin } = getValues();
+      if (pin.length < 4) {
+        setValue("pin", pin + num);
+      }
+    },
+    [setValue, getValues]
+  );
+
+  const handleDelete = React.useCallback(() => {
+    const { pin } = getValues();
+
+    setValue("pin", pin.slice(0, -1));
+  }, [getValues, setValue]);
+
+  const handleClear = React.useCallback(() => {
+    setValue("pin", "");
+  }, []);
+  const onSubmit = React.useCallback(() => {
+    next?.();
+  }, [next]);
+
   return (
-    <YStack>
-      <Text fos="$4" fow="600" ta="center">
+    <YStack f={1} px="$4" pb="$4">
+      <Text fow="600" fos="$4" ta="center" mb="$4">
         Create your Withdrawal Pin
       </Text>
-      <YStack jc="center" py="$4" gap="$4">
+      <YStack gap="$10">
         <Controller
           {...{ control }}
           name="pin"
           render={({ field, formState }) => (
-            <Input size="md" minWidth="100%">
+            <Input size="md" minWidth="100%" key="withdrawal-pin">
               <Input.Label mb="$1.5" ta="center">
                 Enter Pin
               </Input.Label>
               <View w={260} mx="auto">
-                <Input.OTP
-                  {...{
-                    value: field.value,
-                    onChangeText: field.onChange,
-                    maximumLength: 4,
-                    error: !!formState.errors.pin?.message,
+                <PINInput
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  maximumLength={4}
+                  maskInput={false} // Enable masking
+                  onComplete={() => {
+                    console.log("onComplete");
+                    handleSubmit(onSubmit)();
                   }}
+                  error={!!formState.errors.pin?.message}
                 />
               </View>
               {formState.errors.pin?.message ? (
@@ -412,31 +447,86 @@ function CreatePinCase() {
             </Input>
           )}
         />
+
+        <NumberKeyboard
+          onNumberPress={handleNumberPress}
+          onDelete={handleDelete}
+          onClear={handleClear}
+        />
+      </YStack>
+    </YStack>
+  );
+}
+const enterPinSchema = z.object({
+  pin: z.string().length(4),
+});
+type EnterPinSchema = z.infer<typeof enterPinSchema>;
+function EnterPinCase({ next }: { next?: () => void }) {
+  const { control, handleSubmit, setValue, getValues } =
+    useForm<EnterPinSchema>({
+      resolver: zodResolver(createPinSchema),
+      defaultValues: {
+        pin: "",
+      },
+    });
+
+  const handleNumberPress = React.useCallback(
+    (num: string) => {
+      const { pin } = getValues();
+      if (pin.length < 4) {
+        setValue("pin", pin + num);
+      }
+    },
+    [setValue, getValues]
+  );
+
+  const handleDelete = React.useCallback(() => {
+    const { pin } = getValues();
+
+    setValue("pin", pin.slice(0, -1));
+  }, [getValues, setValue]);
+
+  const handleClear = React.useCallback(() => {
+    setValue("pin", "");
+  }, []);
+  const onSubmit = React.useCallback(() => {
+    next?.();
+  }, [next]);
+  return (
+    <YStack f={1} px="$4" pb="$4">
+      <YStack gap="$10">
         <Controller
           {...{ control }}
-          name="confirmPin"
+          name="pin"
           render={({ field, formState }) => (
             <Input size="md" minWidth="100%">
               <Input.Label mb="$1.5" ta="center">
-                Confirm Enter Pin
+                Enter Pin
               </Input.Label>
               <View w={260} mx="auto">
-                <Input.OTP
-                  {...{
-                    value: field.value,
-                    onChangeText: field.onChange,
-                    maximumLength: 4,
-                    error: !!formState.errors.confirmPin?.message,
-                  }}
+                <PINInput
+                  key="enter-pin"
+                  value={field.value}
+                  onChangeText={field.onChange}
+                  maximumLength={4}
+                  maskInput // Enable masking
+                  onComplete={() => handleSubmit(onSubmit)()}
+                  error={!!formState.errors.pin?.message}
                 />
               </View>
-              {formState.errors.confirmPin?.message ? (
+              {formState.errors.pin?.message ? (
                 <Input.SubText error>
-                  {formState.errors.confirmPin?.message}
+                  {formState.errors.pin?.message}
                 </Input.SubText>
               ) : null}
             </Input>
           )}
+        />
+
+        <NumberKeyboard
+          onNumberPress={handleNumberPress}
+          onDelete={handleDelete}
+          onClear={handleClear}
         />
       </YStack>
     </YStack>

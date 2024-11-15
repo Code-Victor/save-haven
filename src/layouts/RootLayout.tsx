@@ -19,12 +19,14 @@ import BootSplash from "react-native-bootsplash";
 import { TamaguiProvider, useTheme, YStack } from "tamagui";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SystemBars } from "react-native-edge-to-edge";
+import { enableFreeze } from "react-native-screens";
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from "expo-router";
 
+enableFreeze();
 export default function RootLayout() {
   const [fontsLoaded, fontsError] = useFontsLoaded();
   const colorScheme = useColorScheme();
