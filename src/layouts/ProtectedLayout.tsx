@@ -1,10 +1,10 @@
 import { Redirect, Stack } from "expo-router";
-
-export default function AppLayout() {
-  const user = true;
+import { useStore } from "@/stores";
+export default function ProtectedLayout() {
+  const user = useStore((s) => s.user);
   console.log("Protected layout");
-  if (!user) {
-    return <Redirect href="/onboarding" />;
+  if (!Boolean(user)) {
+    return <Redirect href="/(auth)/onboarding" />;
   }
 
   return (

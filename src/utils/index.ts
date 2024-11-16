@@ -1,15 +1,10 @@
 import { SUPPORT_PHONE_NUMBER, SUPPORT_PROMPT } from "@/constants";
-import { AxiosError } from "axios";
-import * as Application from "expo-application";
+import { AxiosError, isAxiosError } from "axios";
 import { openURL } from "expo-linking";
-import { Platform } from "expo-modules-core";
 import * as SecureStore from "expo-secure-store";
 import { ToastAndroid } from "react-native";
-import { v4 as uuidv4 } from "uuid";
 
-const IOS_DEVICE_ID_KEY = "ios-device-id";
 const ACCESS_TOKEN_KEY = "access-token";
-const OTP_TOKEN_KEY = "otp-token";
 
 /**
  * Type guard to check if an array is non-empty.
@@ -133,61 +128,17 @@ function getOrdinalSuffix(day: number): string {
   }
 }
 
-/**
- * The function `getDeviceId` retrieves the device ID based on the platform (Android or iOS) and stores
- * it securely if it's an iOS device.
- * @returns The `getDeviceId` function returns the device ID based on the platform. If the platform is
- * Android, it returns the Android ID using `Application.getAndroidId()`. If the platform is not
- * Android (assumed to be iOS), it retrieves the device ID from SecureStore using the key
- * `IOS_DEVICE_ID_KEY`. If the device ID is not found in SecureStore, it generates a new
- */
-export const getDeviceId = async () => {
-  if (Platform.OS === "android") {
-    return Application.getAndroidId();
-  } else {
-    let deviceId = await SecureStore.getItemAsync(IOS_DEVICE_ID_KEY);
-
-    if (!deviceId) {
-      deviceId = uuidv4();
-      await SecureStore.setItemAsync(IOS_DEVICE_ID_KEY, deviceId);
-    }
-
-    return deviceId;
-  }
-};
-
-/**
- * The function setToken asynchronously stores a token in SecureStore based on the provided
- * configuration.
- * @param config - The `setToken` function takes a configuration object as a parameter with the
- * following properties:
- */
-export async function setToken(config: { token: string; otp?: boolean }) {
+export async function setAccessToken(token: string) {
   try {
-    await SecureStore.setItemAsync(
-      config.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY,
-      config.token
-    );
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, token);
   } catch (e) {
     console.log("Failed to store token:", e);
   }
 }
 
-/**
- * The function `getToken` asynchronously retrieves a token from SecureStore based on the configuration
- * provided, with an option to specify OTP token retrieval.
- * @param [config] - The `config` parameter is an optional object that can contain the following
- * property:
- * @returns The `getToken` function returns the token value retrieved from SecureStore based on the
- * configuration provided. If `config` includes the `otp` property set to `true`, the function
- * retrieves the OTP token using the `OTP_TOKEN_KEY`. Otherwise, it retrieves the access token using
- * the `ACCESS_TOKEN_KEY`. The retrieved token value is returned by the function.
- */
-export async function getToken(config?: { otp?: boolean }) {
+export async function getAccessToken() {
   try {
-    const result = await SecureStore.getItemAsync(
-      config?.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY
-    );
+    const result = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
 
     return result;
   } catch (e) {
@@ -197,17 +148,11 @@ export async function getToken(config?: { otp?: boolean }) {
 
 /**
  * The function `clearToken` clears either an OTP token or an access token stored in SecureStore.
- * @param config - The `clearToken` function takes a configuration object as a parameter. The
- * configuration object can have an optional property `otp` which is a boolean value. If `otp` is true,
- * the function will clear the OTP token using the `OTP_TOKEN_KEY`, otherwise, it will clear the access
- * token
+
  */
-export async function clearToken(config: { otp?: boolean }) {
+export async function clearAccessToken() {
   try {
-    await SecureStore.setItemAsync(
-      config.otp ? OTP_TOKEN_KEY : ACCESS_TOKEN_KEY,
-      ""
-    );
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, "");
   } catch (e) {
     console.log("Failed to delete token:", e);
   }
@@ -320,4 +265,21 @@ export function handleError(
       ToastAndroid.show("An unexpected error occurred", ToastAndroid.SHORT);
     }
   };
+}
+
+interface ErrorResponse {
+  message: string;
+}
+
+export function isAxiosErrorWithMessage(
+  error: unknown
+): error is AxiosError<ErrorResponse> {
+  return (
+    isAxiosError(error) &&
+    error.response !== undefined &&
+    typeof error.response.data === "object" &&
+    error.response.data !== null &&
+    "message" in error.response.data &&
+    typeof error.response.data.message === "string"
+  );
 }

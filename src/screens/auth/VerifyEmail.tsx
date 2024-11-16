@@ -1,15 +1,12 @@
-import {
-  Button,
-  Icon,
-  IconButton,
-  Input,
-  SafeArea,
-  Text,
-} from "@/components/base";
+import { authRouter } from "@/api/routers";
+import { Button, Icon, Input, SafeArea, Text } from "@/components/base";
+import { isAxiosErrorWithMessage } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link,useRouter } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { Keyboard } from "react-native";
+import { toast } from "sonner-native";
 import { View, YStack } from "tamagui";
 import { z } from "zod";
 
@@ -18,16 +15,44 @@ const verifyEmailSchema = z.object({
 });
 type VerifyEmailSchema = z.infer<typeof verifyEmailSchema>;
 const VerifyEmail = () => {
-  const router= useRouter();
+  const router = useRouter();
+  const { email, otp } = useLocalSearchParams<{ email: string; otp: string }>();
   const [otpReady, setOtpReady] = React.useState(false);
-
-  const { control, handleSubmit } = useForm<VerifyEmailSchema>({
-    resolver: zodResolver(verifyEmailSchema),
+  const { mutate, isPending } = authRouter.verifyOTP.useMutation({
+    onSuccess: (data) => {
+      router.push({ pathname: "/(auth)/create-account", params: { email } });
+      toast.success(data.message);
+    },
+    onError: (err) => {
+      if (isAxiosErrorWithMessage(err)) {
+        toast.error(err?.response?.data.message ?? "An error occurred");
+      }
+    },
   });
 
+  const { control, handleSubmit, getValues } = useForm<VerifyEmailSchema>({
+    resolver: zodResolver(verifyEmailSchema),
+    defaultValues: {
+      otp,
+    },
+  });
+
+  React.useEffect(() => {
+    const { otp } = getValues();
+    if (otpReady) {
+      mutate({
+        email,
+        otp,
+      });
+      Keyboard.dismiss();
+    }
+  }, [otpReady]);
+
   const onSubmit = (data: VerifyEmailSchema) => {
-    console.log(data);
-    router.push("/create-account")
+    mutate({
+      email,
+      otp: data.otp,
+    });
   };
   return (
     <SafeArea flex={1} bg="$background">
@@ -45,32 +70,39 @@ const VerifyEmail = () => {
           </Text>
         </YStack>
         <YStack gap="$4">
-          <Controller
-            {...{ control }}
-            name="otp"
-            render={({ field, formState }) => (
-              <Input size="md" minWidth="100%">
-                <Input.OTP
-                  {...{
-                    value: field.value,
-                    onChangeText: field.onChange,
-                    maximumLength: 6,
-                    error: !!formState.errors.otp?.message,
-                    setIsPinReady: setOtpReady,
-                  }}
-                />
-                {formState.errors.otp?.message ? (
-                  <Input.SubText error>
-                    {formState.errors.otp?.message}
-                  </Input.SubText>
-                ) : null}
-              </Input>
-            )}
-          />
+          <View maxWidth={240} mx="auto">
+            <Controller
+              {...{ control }}
+              name="otp"
+              render={({ field, formState }) => (
+                <Input size="md" minWidth="100%">
+                  <Input.OTP
+                    {...{
+                      value: field.value,
+                      onChangeText: field.onChange,
+                      maximumLength: 4,
+                      error: !!formState.errors.otp?.message,
+                      setIsPinReady: setOtpReady,
+                    }}
+                  />
+                  {formState.errors.otp?.message ? (
+                    <Input.SubText error>
+                      {formState.errors.otp?.message}
+                    </Input.SubText>
+                  ) : null}
+                </Input>
+              )}
+            />
+          </View>
         </YStack>
       </YStack>
       <YStack pb="$16" gap="$3" px="$4">
-        <Button variant="primary" onPress={handleSubmit(onSubmit)} full>
+        <Button
+          loading={isPending}
+          variant="primary"
+          onPress={handleSubmit(onSubmit)}
+          full
+        >
           <Button.Text>Verify Email</Button.Text>
         </Button>
       </YStack>

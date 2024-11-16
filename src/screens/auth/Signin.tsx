@@ -1,3 +1,4 @@
+import { authRouter } from "@/api/routers";
 import {
   Button,
   Icon,
@@ -6,10 +7,12 @@ import {
   SafeArea,
   Text,
 } from "@/components/base";
+import { useStore } from "@/stores";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner-native";
 import { View, YStack } from "tamagui";
 import { z } from "zod";
 
@@ -19,6 +22,18 @@ const signinFormSchema = z.object({
 });
 type SigninFormSchema = z.infer<typeof signinFormSchema>;
 const Signin = () => {
+  const router = useRouter();
+  const saveUser = useStore((state) => state.saveUser);
+  const { mutate, isPending } = authRouter.userLogin.useMutation({
+    onSuccess: (data) => {
+      router.push("/(protected)/(tabs)");
+      saveUser(data.data);
+      toast.success(data.message);
+    },
+    onError: () => {
+      toast.error("An error occurred");
+    },
+  });
   const { control, handleSubmit } = useForm<SigninFormSchema>({
     resolver: zodResolver(signinFormSchema),
   });
@@ -27,9 +42,9 @@ const Signin = () => {
     () => setShowPassword((prev) => !prev),
     []
   );
-  const onSubmit = (data: SigninFormSchema) => {
-    console.log(data);
-  };
+  const onSubmit = React.useCallback((data: SigninFormSchema) => {
+    mutate(data);
+  }, []);
   return (
     <SafeArea flex={1} bg="$background">
       <View ai="center" jc="center">
@@ -101,12 +116,17 @@ const Signin = () => {
         </YStack>
       </YStack>
       <YStack py="$11" gap="$3" px="$4">
-        <Button variant="primary" onPress={handleSubmit(onSubmit)} full>
+        <Button
+          loading={isPending}
+          variant="primary"
+          onPress={handleSubmit(onSubmit)}
+          full
+        >
           <Button.Text>Sign in</Button.Text>
         </Button>
         <Text ta="center" fow="500">
           Don’t have an account?{" "}
-          <Link href="/signup" asChild>
+          <Link href="/(auth)/signup" asChild>
             <Text color="$green8" fow="500" hitSlop={12}>
               Sign up
             </Text>

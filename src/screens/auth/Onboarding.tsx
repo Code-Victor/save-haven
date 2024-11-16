@@ -10,7 +10,7 @@ const Onboarding = () => {
         <OnboardingSlides />
       </View>
       <XStack py="$11" gap="$4" px="$5">
-        <Link href="/signup" asChild>
+        <Link href="/(auth)/signup" asChild>
           <Button variant="outlined" f={1}>
             <Button.Text>Sign up</Button.Text>
             <Button.Icon>
@@ -18,7 +18,7 @@ const Onboarding = () => {
             </Button.Icon>
           </Button>
         </Link>
-        <Link href="/signin" asChild>
+        <Link href="/(auth)/signin" asChild>
           <Button variant="primary" f={1}>
             <Button.Text>Sign in</Button.Text>
           </Button>

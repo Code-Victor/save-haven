@@ -1,3 +1,4 @@
+import { authRouter } from "@/api/routers";
 import {
   Button,
   Icon,
@@ -10,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner-native";
 import { View, YStack } from "tamagui";
 import { z } from "zod";
 
@@ -18,14 +20,28 @@ const signupFormSchema = z.object({
 });
 type SignupFormSchema = z.infer<typeof signupFormSchema>;
 const Signup = () => {
+  const { mutate, isPending } = authRouter.onboardUser.useMutation({
+    onSuccess: (data) => {
+      toast.success("Check your email");
+      router.push({
+        pathname: "/(auth)/verify-email",
+        params: {
+          email: data.data.email,
+          otp: data.data.otp,
+        },
+      });
+    },
+    onError: () => {
+      toast.error("An Error Occured");
+    },
+  });
   const router = useRouter();
   const { control, handleSubmit } = useForm<SignupFormSchema>({
     resolver: zodResolver(signupFormSchema),
   });
 
   const onSubmit = (data: SignupFormSchema) => {
-    console.log(data);
-    router.push("/verify-email");
+    mutate(data);
   };
   return (
     <SafeArea flex={1} bg="$background">
@@ -63,12 +79,17 @@ const Signup = () => {
         </YStack>
       </YStack>
       <YStack py="$11" gap="$3" px="$4">
-        <Button variant="primary" onPress={handleSubmit(onSubmit)} full>
+        <Button
+          loading={isPending}
+          variant="primary"
+          onPress={handleSubmit(onSubmit)}
+          full
+        >
           <Button.Text>Verify Email</Button.Text>
         </Button>
         <Text ta="center" fow="500">
           Already have an account?{" "}
-          <Link href="/signin" asChild>
+          <Link href="/(auth)/signin" asChild>
             <Text color="$green8" fow="500" hitSlop={12}>
               Sign in
             </Text>

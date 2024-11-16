@@ -1,3 +1,4 @@
+import { authRouter } from "@/api/routers";
 import {
   Button,
   Icon,
@@ -7,7 +8,7 @@ import {
   Text,
 } from "@/components/base";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { LayoutChangeEvent } from "react-native";
@@ -16,6 +17,7 @@ import {
   KeyboardGestureArea,
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
+import { toast } from "sonner-native";
 import { ScrollView, View, YStack } from "tamagui";
 import { z } from "zod";
 
@@ -33,6 +35,19 @@ const formSchema = z
   });
 type FormSchema = z.infer<typeof formSchema>;
 const CreateAccount = () => {
+  const router = useRouter();
+  const { email } = useLocalSearchParams<{ email: string }>();
+  const { mutate, isPending } = authRouter.userSignUp.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      router.push({
+        pathname: "/(auth)/signin",
+      });
+    },
+    onError: () => {
+      toast.error("An Error Occured");
+    },
+  });
   const [footerHeight, setFooterHeight] = React.useState(0);
   const { control, handleSubmit } = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -45,9 +60,17 @@ const CreateAccount = () => {
   const handleLayout = React.useCallback((evt: LayoutChangeEvent) => {
     setFooterHeight(evt.nativeEvent.layout.height);
   }, []);
-  const onSubmit = (data: FormSchema) => {
-    console.log(data);
-  };
+  const onSubmit = React.useCallback((data: FormSchema) => {
+    mutate({
+      email,
+      address: data.address,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      password: data.password,
+      confirm_password: data.confirmPassword,
+      telephone_no: data.phoneNumber,
+    });
+  }, []);
   return (
     <KeyboardGestureArea
       interpolator="ios"
@@ -269,7 +292,12 @@ const CreateAccount = () => {
             bg="$background"
             onLayout={handleLayout}
           >
-            <Button variant="primary" onPress={handleSubmit(onSubmit)} full>
+            <Button
+              loading={isPending}
+              variant="primary"
+              onPress={handleSubmit(onSubmit)}
+              full
+            >
               <Button.Text>Create Account</Button.Text>
             </Button>
           </YStack>
