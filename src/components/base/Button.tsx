@@ -34,8 +34,8 @@ const buttonHeight = {
 export const ButtonFrame = styled(View, {
   name: "Button",
   context: ButtonContext,
-  animation: "100ms",
   position: "relative",
+  animation: "medium",
   justifyContent: "center",
   overflow: "hidden",
   transform: [

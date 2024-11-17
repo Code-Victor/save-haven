@@ -117,7 +117,7 @@ export const createPassword = (
   data: { new_password: string; confirm_new_password: string }
 ) => api.post<CreatePasswordResponse>(`/auth/create-password/${email}`, data);
 
-// Wallet API functions
+//#region Wallet API functions
 
 export const getWalletDetails = async () => {
   const res = await api.get<ApiTypes.WalletDetailsResponse>("/wallet/details");
@@ -140,16 +140,20 @@ export const transferFunds = (data: {
   password: string;
 }) => api.post<TransferFundsResponse>("/wallet/transfer", data);
 
-export interface GetTransactionsResponse {}
-export const getTransactions = (params?: {
+export const getTransactions = async (params?: {
   transaction_type?: string;
   start_date?: string;
   end_date?: string;
   amount?: number;
   page?: number;
   size?: number;
-}) => api.get<GetTransactionsResponse>("/wallet/transactions", { params });
-
+}) => {
+  const res = await api.get<ApiTypes.GetTransactionsResponse>(
+    "/wallet/transactions",
+    { params }
+  );
+  return res.data;
+};
 export interface GetTransactionByReferenceResponse {}
 export const getTransactionByReference = (transactionReference: string) =>
   api.get<GetTransactionByReferenceResponse>(
@@ -159,8 +163,9 @@ export const getTransactionByReference = (transactionReference: string) =>
 export interface GetTransactionByIdResponse {}
 export const getTransactionById = (transactionId: string) =>
   api.get<GetTransactionByIdResponse>(`/wallet/transaction/${transactionId}`);
+// #endregion
 
-// Webhook API functions
+//#region Webhook API functions
 export const handleCollectionWebhook = () =>
   api.post("/transactions/collection-webhook");
 export const handlePayoutWebhook = () =>
@@ -180,3 +185,4 @@ export const getAccountName = (bankCode: string, accountNumber: string) =>
   api.post<GetAccountNameResponse>(
     `/get-account-name/${bankCode}/${accountNumber}`
   );
+// #endregion

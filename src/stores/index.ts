@@ -53,7 +53,7 @@ export const useStore = create<Slices>()(
           user: state.user,
           expoPushToken: state.expoPushToken,
         }),
-        version: 0.01,
+        version: 0.02,
       }
     )
   )

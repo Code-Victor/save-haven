@@ -37,3 +37,31 @@ export interface WalletDetailsResponse {
   bank_name: string;
   bank_code: string;
 }
+export interface GetTransactionsResponse {
+  items: Transaction[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface Transaction {
+  id: string;
+  user: string;
+  amount: number;
+  transaction_type: "CREDIT" | "DEBIT";
+  transaction_reference: string;
+  transaction_date: string;
+  transaction_status: string;
+  channel: string;
+  virtual_account_number: string;
+  transaction_fee: number;
+  recipient: Recipient;
+  createdAt: string;
+}
+
+export interface Recipient {
+  account_number: string;
+  account_name: string;
+  bank_name: string;
+}

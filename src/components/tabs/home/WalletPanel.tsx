@@ -1,6 +1,7 @@
 import { walletRouter } from "@/api/routers";
 import { WalletDetailsResponse } from "@/api/types";
 import { Skeleton } from "@/components/Skeleton";
+import { TransactionItem } from "@/components/TransactionItem";
 import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
 import { color } from "@/config/colors";
 import { monify } from "@/utils";
@@ -10,11 +11,55 @@ import { Link } from "expo-router";
 import * as React from "react";
 import { Share } from "react-native";
 import { toast } from "sonner-native";
-import { Sheet, View, XStack, YStack, useTheme } from "tamagui";
+import { Sheet, Spinner, View, XStack, YStack, useTheme } from "tamagui";
 
 export function WalletPanel() {
+  const theme = useTheme();
   const { data: walletDetails, isLoading } =
     walletRouter.getWalletDetails.useQuery({});
+  const { data: transactions, isLoading: isLoadingTransactions } =
+    walletRouter.getTransactions.useQuery({
+      select: (data) => data.items,
+    });
+  const transcationUI = React.useMemo(() => {
+    if (isLoadingTransactions) {
+      return (
+        <YStack height="$6" ai="center" jc="center">
+          <Spinner size="large" color="$purple6" />
+        </YStack>
+      );
+    } else if (transactions?.length === 0) {
+      return (
+        <YStack py="$2" gap="$2" ai="center" jc="center">
+          <Icon name="ri:search-line" size={32} color={theme.purple6.val} />
+          <Text fow="500" color="$black8" fos="$2">
+            No transactions yet
+          </Text>
+        </YStack>
+      );
+    }
+    if (transactions) {
+      return (
+        <YStack px="$3">
+          {transactions?.slice(0, 3).map((transaction) => {
+            return (
+              <TransactionItem
+                key={transaction.id}
+                channel={transaction.channel}
+                variant={
+                  transaction.transaction_type === "CREDIT"
+                    ? "received"
+                    : "sent"
+                }
+                amount={transaction.amount}
+                date={transaction.transaction_date}
+              />
+            );
+          })}
+        </YStack>
+      );
+    }
+  }, [transactions, isLoadingTransactions]);
   return (
     <>
       <YStack bg="$white1" gap="$3" mt="$4" pb="$4" br={16}>
@@ -46,15 +91,13 @@ export function WalletPanel() {
         <YStack gap="$2">
           <XStack jc="space-between" ai="center" px="$3">
             <Text fow="500">Recent Transactions</Text>
-            <Button variant="ghost" size="sm">
-              <Button.Text>See all</Button.Text>
-            </Button>
+            <Link href="/(protected)/(tabs)/history" asChild>
+              <Button variant="ghost" size="sm">
+                <Button.Text>See all</Button.Text>
+              </Button>
+            </Link>
           </XStack>
-          <YStack>
-            <TransactionItem variant="sent" />
-            <TransactionItem variant="received" />
-            <TransactionItem variant="failed" />
-          </YStack>
+          {transcationUI}
         </YStack>
         <XStack gap="$6" px="$3">
           <Link href="/(protected)/transfer" asChild>
@@ -74,54 +117,6 @@ export function WalletPanel() {
         </XStack>
       </YStack>
     </>
-  );
-}
-
-type TransactionVariant = "sent" | "received" | "failed";
-function TransactionItem(props: { variant: "sent" | "received" | "failed" }) {
-  const theme = useTheme();
-  const icons = {
-    sent: "ri:arrow-right-up-line",
-    received: "ri:arrow-left-down-line",
-    failed: "ri:error-warning-line",
-  } as const satisfies Record<TransactionVariant, UnifiedIconName>;
-  const colors = {
-    sent: theme.green6.val,
-    received: theme.purple6.val,
-    failed: "#FF0000",
-  } as const satisfies Record<TransactionVariant, string>;
-  return (
-    <XStack px="$3" ai="center" gap="$4" py="$1.5">
-      <View
-        h={40}
-        w={40}
-        ai="center"
-        jc="center"
-        br={20}
-        bg={Color(colors[props.variant]).alpha(0.1).string()}
-      >
-        <Icon
-          name={icons[props.variant]}
-          color={colors[props.variant]}
-          size={24}
-        />
-      </View>
-      <YStack f={1}>
-        <Text fos="$2" color="$black1" fow="500">
-          Saved to Target Saving
-        </Text>
-        <Text color="$black6" fos="$1">
-          {new Date().toLocaleDateString("en", {
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-          })}
-        </Text>
-      </YStack>
-      <Text fow="500">{monify(1000000)}</Text>
-    </XStack>
   );
 }
 

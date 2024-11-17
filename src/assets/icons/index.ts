@@ -1,6 +1,7 @@
 import SaveHavenEmblem from "./save-haven-emblem.svg";
 import Crowdfunding from "./crowdfunding.svg";
 import GroupSaving from "./group-saving.svg";
+import NotFound from "./not-found.svg";
 import Subscription from "./subscription.svg";
 import TargetSaving from "./target-saving.svg";
 import Target from "./target.svg";
@@ -12,4 +13,5 @@ export const icons = {
   subscription: Subscription,
   "target-saving": TargetSaving,
   target: Target,
+  "not-found": NotFound,
 };

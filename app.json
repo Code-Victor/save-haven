@@ -7,9 +7,7 @@
     "icon": "./src/assets/images/icon.png",
     "scheme": "savehaven",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -26,14 +24,10 @@
           "data": [
             {
               "scheme": "https",
-              "host": "save-haven-web.vercel.app",
-              "pathPrefix": "*"
+              "host": "save-haven-web.vercel.app"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
       "googleServicesFile": "./google-services.json"
@@ -59,9 +53,7 @@
           ]
         }
       ],
-      [
-        "expo-build-properties"
-      ],
+      ["expo-build-properties"],
       [
         "react-native-bootsplash",
         {
