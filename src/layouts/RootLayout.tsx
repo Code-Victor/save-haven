@@ -12,6 +12,7 @@ import { enableFreeze } from "react-native-screens";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SkeletonProvider } from "@/components/Skeleton";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -48,11 +49,13 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <ThemeProvider value={DefaultTheme}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
-          <QueryClientProvider client={queryClient}>
-            <TamaguiProvider config={config} defaultTheme={"light"}>
-              {children}
-            </TamaguiProvider>
-          </QueryClientProvider>
+          <SkeletonProvider>
+            <QueryClientProvider client={queryClient}>
+              <TamaguiProvider config={config} defaultTheme={"light"}>
+                {children}
+              </TamaguiProvider>
+            </QueryClientProvider>
+          </SkeletonProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>
     </ThemeProvider>

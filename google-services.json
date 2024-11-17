@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432118067601",
+    "project_id": "savehaven-4c15a",
+    "storage_bucket": "savehaven-4c15a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432118067601:android:555920888d3e3f5f6aea30",
+        "android_client_info": {
+          "package_name": "com.savehaven.client"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCa0JXZGoT1facTSI6X1dahgmP3Mw-GoL0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

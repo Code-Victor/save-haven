@@ -27,3 +27,13 @@ export interface User {
   last_name: string;
   telephone_no: string;
 }
+
+export interface WalletDetailsResponse {
+  user: string;
+  wallet_balance: number;
+  currency: string;
+  account_number: string;
+  account_name: string;
+  bank_name: string;
+  bank_code: string;
+}

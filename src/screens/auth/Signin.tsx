@@ -25,10 +25,10 @@ const Signin = () => {
   const router = useRouter();
   const saveUser = useStore((state) => state.saveUser);
   const { mutate, isPending } = authRouter.userLogin.useMutation({
-    onSuccess: (data) => {
-      router.push("/(protected)/(tabs)");
-      saveUser(data.data);
+    onSuccess: async (data) => {
       toast.success(data.message);
+      await saveUser(data.data);
+      router.push("/(protected)/(tabs)");
     },
     onError: () => {
       toast.error("An error occurred");

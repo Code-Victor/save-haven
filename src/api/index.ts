@@ -118,9 +118,11 @@ export const createPassword = (
 ) => api.post<CreatePasswordResponse>(`/auth/create-password/${email}`, data);
 
 // Wallet API functions
-export interface WalletDetailsResponse {}
-export const getWalletDetails = () =>
-  api.get<WalletDetailsResponse>("/wallet/details");
+
+export const getWalletDetails = async () => {
+  const res = await api.get<ApiTypes.WalletDetailsResponse>("/wallet/details");
+  return res.data;
+};
 
 export interface CreateWithdrawalPinResponse {}
 export const createWithdrawalPin = (password: string) =>

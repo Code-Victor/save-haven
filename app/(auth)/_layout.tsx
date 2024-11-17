@@ -9,7 +9,6 @@ const AuthLayout = () => {
         animation: "slide_from_right",
         gestureEnabled: true,
         gestureDirection: "horizontal",
-        animationDuration: 400,
       }}
       initialRouteName="onboarding"
     />

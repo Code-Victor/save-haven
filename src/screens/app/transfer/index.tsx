@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { Stack, useRouter } from "expo-router";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
+import { Dimensions, FlatList } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Adapt,
@@ -120,7 +121,6 @@ export default function MakeTransfer() {
                               Choose Bank
                             </Text>
                             <Adapt.Contents />
-                            <View h="$16" />
                           </Sheet.Frame>
                           <Sheet.Overlay />
                         </Sheet>
@@ -128,9 +128,6 @@ export default function MakeTransfer() {
 
                       <Select.Content>
                         <Select.Viewport>
-                          <Select.Item index={1} value="hi">
-                            <Select.ItemText>Access Bank</Select.ItemText>
-                          </Select.Item>
                           <Select.Item index={2} value="hello">
                             <Select.ItemText>
                               Gurantee Trust Bank
