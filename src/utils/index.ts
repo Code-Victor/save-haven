@@ -1,4 +1,8 @@
-import { SUPPORT_PHONE_NUMBER, SUPPORT_PROMPT } from "@/constants";
+import {
+  REDIRECT_URL,
+  SUPPORT_PHONE_NUMBER,
+  SUPPORT_PROMPT,
+} from "@/constants";
 import { AxiosError, isAxiosError } from "axios";
 import { openURL } from "expo-linking";
 import * as SecureStore from "expo-secure-store";
@@ -283,3 +287,155 @@ export function isAxiosErrorWithMessage(
     typeof error.response.data.message === "string"
   );
 }
+
+// Types for the payment configuration
+type ConnectionMode = "live" | "test";
+type CurrencyCode = "NGN" | "USD";
+
+interface PaymentConfig {
+  merchantKey: string;
+  baseUrl?: string;
+}
+
+interface PaymentLinkParams {
+  checkoutAmount: number;
+  currencyCode?: CurrencyCode;
+  emailAddress: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  transactionReference: string;
+  redirectUrl?: string;
+  connectionMode?: ConnectionMode;
+  additionalDetails?: Record<string, unknown>;
+}
+
+class PaymentLinkGenerator {
+  private readonly merchantKey: string;
+  private readonly baseUrl: string;
+
+  constructor(config: PaymentConfig) {
+    this.merchantKey = config.merchantKey;
+    this.baseUrl = config.baseUrl || "https://business.dev.payaza.africa";
+  }
+
+  /**
+   * Generates a payment link with the provided parameters
+   * @param params Payment link parameters
+   * @returns Generated payment URL
+   */
+  generatePaymentLink(params: PaymentLinkParams): string {
+    const {
+      checkoutAmount,
+      currencyCode = "NGN",
+      emailAddress,
+      firstName,
+      lastName,
+      phoneNumber,
+      transactionReference,
+      redirectUrl = REDIRECT_URL,
+      connectionMode = "test",
+      additionalDetails,
+    } = params;
+
+    // Validate amount
+    if (checkoutAmount <= 0) {
+      throw new Error("Checkout amount must be greater than 0");
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailAddress)) {
+      throw new Error("Invalid email address");
+    }
+
+    // Build query parameters
+    const queryParams = new URLSearchParams();
+    queryParams.append("merchant_key", this.merchantKey);
+    queryParams.append("connection_mode", connectionMode);
+    queryParams.append("checkout_amount", checkoutAmount.toString());
+    queryParams.append("currency_code", currencyCode);
+    queryParams.append("email_address", emailAddress);
+    queryParams.append("first_name", firstName);
+    queryParams.append("last_name", lastName);
+    queryParams.append("phone_number", phoneNumber);
+    queryParams.append("transaction_reference", transactionReference);
+    queryParams.append("redirect_url", redirectUrl);
+
+    // Add additional details if provided
+    if (additionalDetails) {
+      queryParams.append(
+        "additional_details",
+        JSON.stringify(additionalDetails)
+      );
+    }
+
+    return `${this.baseUrl}/payment-page?${queryParams.toString()}`;
+  }
+
+  /**
+   * Validates a generated payment URL
+   * @param url Payment URL to validate
+   * @returns boolean indicating if the URL is valid
+   */
+  validatePaymentUrl(url: string): boolean {
+    try {
+      const parsedUrl = new URL(url);
+      const requiredParams = [
+        "merchant_key",
+        "connection_mode",
+        "checkout_amount",
+        "currency_code",
+        "email_address",
+        "first_name",
+        "last_name",
+        "phone_number",
+        "transaction_reference",
+        "redirect_url",
+      ];
+
+      for (const param of requiredParams) {
+        if (!parsedUrl.searchParams.has(param)) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// Usage example
+export const createPaymentLinkGenerator = (config: PaymentConfig) => {
+  return new PaymentLinkGenerator(config);
+};
+
+export const paymentGenerator = createPaymentLinkGenerator({
+  merchantKey: "PZ78-PKTEST-942F4045-28B7-4EDF-8805-15EF1B3F9BFF",
+});
+
+// Example usage:
+/*
+const paymentGenerator = createPaymentLinkGenerator({
+  merchantKey: 'your_merchant_key_here',
+});
+
+const paymentLink = paymentGenerator.generatePaymentLink({
+  checkoutAmount: 1000,
+  currencyCode: 'NGN',
+  emailAddress: 'user@example.com',
+  firstName: 'John',
+  lastName: 'Doe',
+  phoneNumber: '1234567890',
+  transactionReference: 'TX123456',
+  redirectUrl: 'https://your-redirect-url.com',
+  additionalDetails: {
+    orderId: '12345',
+    productName: 'Premium Subscription'
+  }
+});
+
+console.log(paymentLink);
+*/

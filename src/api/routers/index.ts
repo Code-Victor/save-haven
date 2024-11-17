@@ -34,3 +34,21 @@ export const miscRouter = router("misc", {
   getAllBanks: router.query({ fetcher: api.getAllBanks }),
   getAccountName: router.mutation({ mutationFn: api.getAccountName }),
 });
+
+export const targetSavingRouter = router("target-savings", {
+  create: router.mutation({
+    mutationFn: api.createTargetSavings,
+  }),
+  getAll: router.query({
+    fetcher: api.getAllTargetSavings,
+  }),
+  getById: router.query({
+    fetcher: api.getTargetSavingsById,
+  }),
+  getTransactions: router.query({
+    fetcher: api.getTargetSavingTransactions,
+  }),
+  fundAccount: router.mutation({
+    mutationFn: api.fundTargetSavingAccount,
+  }),
+});

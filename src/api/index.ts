@@ -165,6 +165,53 @@ export const getTransactionById = (transactionId: string) =>
   api.get<GetTransactionByIdResponse>(`/wallet/transaction/${transactionId}`);
 // #endregion
 
+// #region Target Saving
+
+export const createTargetSavings = async (data: {
+  savings_name: string;
+  target_amount: number;
+  amount_per_frequency: number;
+  start_date: Date;
+  end_date: Date;
+  savings_frequency: string;
+  days_of_week: string;
+}) => {
+  const res = await api.post<ApiTypes.CreateTargetSavingsResponse>(
+    "/target-savings/create-account",
+    data
+  );
+  return res.data;
+};
+export const getAllTargetSavings = async () => {
+  const res = await api.get<ApiTypes.GetAllTargetSavingsResponse>(
+    "/target-savings/accounts"
+  );
+  return res.data;
+};
+
+export const getTargetSavingsById = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetTargetSavingsByIdResponse>(
+    "/target-savings/accounts/" + id
+  );
+  return res.data;
+};
+
+export const getTargetSavingTransactions = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetTargetSavingTransactionsResponse>(
+    "/target-savings/transactions/" + id
+  );
+  return res.data;
+};
+
+export const fundTargetSavingAccount = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.FundTargetSavingAccountResponse>(
+    "/target-savings/fund-savings-account/" + id
+  );
+  return res.data;
+};
+
+// #endregion
+
 //#region Webhook API functions
 export const handleCollectionWebhook = () =>
   api.post("/transactions/collection-webhook");

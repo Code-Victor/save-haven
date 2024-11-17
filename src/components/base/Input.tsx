@@ -18,6 +18,7 @@ import {
   styled,
   Input as TInput,
   useControllableState,
+  XStack,
 } from "tamagui";
 
 type Size = "sm" | "md" | "lg";
@@ -444,6 +445,56 @@ export const OTPInput: React.FC<OTPInputProps> = ({
     </OTPInputContainer>
   );
 };
+
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
+import { Pressable } from "react-native";
+import { Icon } from "./Icon";
+
+export function DatePicker(
+  props: React.ComponentProps<typeof DateTimePicker> & {
+    mode: "date" | "time" | "datetime";
+  }
+) {
+  const show = (currentMode: "time" | "date") => () => {
+    DateTimePickerAndroid.open({
+      value: props.value,
+      onChange: props.onChange,
+      mode: currentMode,
+      minimumDate: props.minimumDate,
+      maximumDate: props.maximumDate,
+    });
+  };
+  const isDate = props.mode.includes("date");
+  return (
+    <XStack
+      onPress={isDate ? show("date") : show("time")}
+      gap="$2.5"
+      ai="center"
+      h={42}
+      w="100%"
+    >
+      <XStack ai="center" f={1}>
+        {isDate ? (
+          <Text fontFamily="dmSansMedium">
+            {new Intl.DateTimeFormat("en-US", {
+              dateStyle: "medium",
+            }).format(props.value)}
+          </Text>
+        ) : (
+          <Text fontFamily="dmSansMedium">
+            {new Intl.DateTimeFormat("en-US", {
+              timeStyle: "short",
+            }).format(props.value)}
+          </Text>
+        )}
+      </XStack>
+
+      <Icon name="ri:calendar-2-line" size={24} color="#636874" />
+    </XStack>
+  );
+}
 /* 
 Usage:
 ```tsx
@@ -464,4 +515,5 @@ export const Input = withStaticProperties(InputGroupFrameImpl, {
   Area: InputImpl,
   SubText: InputSubText,
   OTP: OTPInput,
+  DatePicker,
 });

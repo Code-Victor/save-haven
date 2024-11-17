@@ -2,7 +2,7 @@ import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
 import { TABBAR_HEIGHT_OFFSET } from "@/constants";
 import { savingsOptions } from "@/data";
 import { Image } from "expo-image";
-import { Stack } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScrollView, useTheme, View, XStack, YStack } from "tamagui";
 
@@ -33,9 +33,18 @@ export default function TargetSavingsScreen() {
             ))}
           </YStack>
         </YStack>
-        <Button mt="$16">
-          <Button.Text>Create Target Saving</Button.Text>
-        </Button>
+        <YStack gap="$2" mt="$16">
+          <Link href="/(protected)/target-savings/all" asChild>
+            <Button variant="outlined">
+              <Button.Text>View Target Savings</Button.Text>
+            </Button>
+          </Link>
+          <Link href="/(protected)/target-savings/create" asChild>
+            <Button>
+              <Button.Text>Create Target Saving</Button.Text>
+            </Button>
+          </Link>
+        </YStack>
         <YStack gap="$4" pt="$3"></YStack>
       </ScrollView>
     </>

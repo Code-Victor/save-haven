@@ -13,7 +13,7 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { Toaster } from "sonner-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SkeletonProvider } from "@/components/Skeleton";
-
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -49,13 +49,15 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <ThemeProvider value={DefaultTheme}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
-          <SkeletonProvider>
-            <QueryClientProvider client={queryClient}>
-              <TamaguiProvider config={config} defaultTheme={"light"}>
-                {children}
-              </TamaguiProvider>
-            </QueryClientProvider>
-          </SkeletonProvider>
+          <BottomSheetModalProvider>
+            <SkeletonProvider>
+              <QueryClientProvider client={queryClient}>
+                <TamaguiProvider config={config} defaultTheme={"light"}>
+                  {children}
+                </TamaguiProvider>
+              </QueryClientProvider>
+            </SkeletonProvider>
+          </BottomSheetModalProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>
     </ThemeProvider>
