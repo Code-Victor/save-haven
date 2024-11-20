@@ -20,6 +20,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as React from "react";
 import { targetSavingRouter } from "@/api/routers";
+import { isAxiosErrorWithMessage } from "@/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 const frequencyOptions = {
   DAILY: "Daily",
@@ -55,25 +57,39 @@ const targetSavingsFormSchema = z.object({
 });
 type TargetSavingsFormSchema = z.infer<typeof targetSavingsFormSchema>;
 export default function CreateTargetSavingsScreen() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const theme = useTheme();
   const { mutate, isPending } = targetSavingRouter.create.useMutation({
     onSuccess(data) {
       toast.success(data.message);
-      router.push({
-        pathname: "/(protected)/target-savings/[id]/",
-        params: {
-          id: "hi",
-        },
-      });
+      return queryClient
+        .prefetchQuery(
+          targetSavingRouter.getById.getFetchOptions({ id: data.data.id })
+        )
+        .then(() =>
+          router.push({
+            pathname: "/(protected)/target-savings/[id]/",
+            params: {
+              id: data.data.id,
+              name: data.data.savings_name,
+            },
+          })
+        );
     },
-    onError() {
-      toast.error("An Error Occured, try again");
+    onError(err) {
+      if (isAxiosErrorWithMessage(err)) {
+        toast.error(err?.response?.data.message ?? "An error occurred");
+      }
     },
   });
   const safeAreaInsets = useSafeAreaInsets();
   const { control, handleSubmit } = useForm<TargetSavingsFormSchema>({
     resolver: zodResolver(targetSavingsFormSchema),
+    defaultValues: {
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
+    },
   });
 
   const onSubmit = React.useCallback((data: TargetSavingsFormSchema) => {

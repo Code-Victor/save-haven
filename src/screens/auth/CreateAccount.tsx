@@ -7,8 +7,9 @@ import {
   SafeArea,
   Text,
 } from "@/components/base";
+import { isAxiosErrorWithMessage } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { LayoutChangeEvent } from "react-native";
@@ -18,7 +19,7 @@ import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import { toast } from "sonner-native";
-import { ScrollView, View, YStack } from "tamagui";
+import { View, YStack } from "tamagui";
 import { z } from "zod";
 
 const formSchema = z
@@ -44,8 +45,10 @@ const CreateAccount = () => {
         pathname: "/(auth)/signin",
       });
     },
-    onError: () => {
-      toast.error("An Error Occured");
+    onError: (err) => {
+      if (isAxiosErrorWithMessage(err)) {
+        toast.error(err?.response?.data.message ?? "An error occurred");
+      }
     },
   });
   const [footerHeight, setFooterHeight] = React.useState(0);

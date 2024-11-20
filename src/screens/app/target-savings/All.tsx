@@ -105,6 +105,10 @@ function TargetItem({
   targetAmount: number;
   amountSaved: number;
 }) {
+  const percentage = React.useMemo(() => {
+    return Math.round((amountSaved / targetAmount) * 100);
+  }, [amountSaved, targetAmount]);
+
   // const
   return (
     <Link
@@ -132,14 +136,20 @@ function TargetItem({
             <Button.Text>Share</Button.Text>
           </Button>
         </XStack>
-        <Progress
-          size="$2"
-          value={amountSaved}
-          max={targetAmount}
-          bg="$purple2"
-        >
-          <Progress.Indicator animation="bouncy" br="$4" bg="$purple6" />
-        </Progress>
+        <XStack ai="center" gap="$2">
+          <Progress
+            flex={1}
+            size="$2"
+            value={percentage}
+            max={100}
+            bg="$purple3"
+          >
+            <Progress.Indicator animation="100ms" br="$4" bg="$purple6" />
+          </Progress>
+          <Text fos="$1" fow="600" color="$purple6">
+            {percentage}%
+          </Text>
+        </XStack>
       </YStack>
     </Link>
   );

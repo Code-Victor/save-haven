@@ -1,30 +1,35 @@
-import { targetSavingRouter } from "@/api/routers";
+import { targetSavingRouter, walletRouter } from "@/api/routers";
+import BottomSheetKeyboardAwareScrollView from "@/components/BottomSheetKeyboardAwareScrollView";
+import {
+  RefreshScrollView,
+  useRegisterRefetch,
+} from "@/components/RefreshScrollView";
 import { Skeleton } from "@/components/Skeleton";
 import { TransactionItem } from "@/components/TransactionItem";
 import { Button, Icon, Input, Text } from "@/components/base";
-import { REDIRECT_URL, TABBAR_HEIGHT_OFFSET } from "@/constants";
-import { monify, paymentGenerator } from "@/utils";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { TABBAR_HEIGHT_OFFSET } from "@/constants";
+import { useStore } from "@/stores";
+import { handleError, monify, paymentGenerator } from "@/utils";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import * as React from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Alert } from "react-native";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
 import {
   Progress,
-  ScrollView,
-  Sheet,
   Spinner,
+  View,
   XStack,
   YStack,
   useTheme,
   useWindowDimensions,
 } from "tamagui";
-import * as React from "react";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import BottomSheetKeyboardAwareScrollView from "@/components/BottomSheetKeyboardAwareScrollView";
-import BottomSheet, { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useStore } from "@/stores";
-import { WebView, WebViewNavigation } from "react-native-webview";
+import { unknown, z } from "zod";
 
 export default function TargetSavingDetails() {
   const theme = useTheme();
@@ -38,7 +43,7 @@ export default function TargetSavingDetails() {
           title: "Target Savings",
         }}
       />
-      <ScrollView
+      <RefreshScrollView
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: theme.white2.val,
@@ -51,19 +56,51 @@ export default function TargetSavingDetails() {
           <PreviewCard id={id} name={name} />
           <TransactionsPane id={id} />
         </YStack>
-      </ScrollView>
+      </RefreshScrollView>
     </>
   );
 }
 
 function PreviewCard({ name, id }: { id: string; name: string }) {
-  const { data: targetSaving } = targetSavingRouter.getById.useQuery({
-    variables: { id },
-  });
+  const { mutate: withdraw, isPending: isWithdrawing } =
+    targetSavingRouter.withdraw.useMutation({
+      onError: handleError(),
+      onSuccess({ message }) {
+        toast.success(message);
+      },
+    });
+  const { data: targetSaving, refetch: refetchTargetSaving } =
+    targetSavingRouter.getById.useQuery({
+      variables: { id },
+    });
+  useRegisterRefetch(refetchTargetSaving);
   const isLocked = targetSaving?.is_locked ?? true;
   const targetAmount = targetSaving?.target_amount ?? 0;
   const amountSaved = targetSaving?.amount_saved ?? 0;
 
+  const percentage = React.useMemo(() => {
+    return Math.round((amountSaved / targetAmount) * 100);
+  }, [amountSaved, targetAmount]);
+  const onWithdrawPress = React.useCallback(() => {
+    Alert.alert(
+      "Are you sure?",
+      "Funds would be withdrawn from your target saving into your wallet",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Ok",
+          style: "cancel",
+          onPress: () => withdraw({ id }),
+        },
+      ],
+      {
+        cancelable: true,
+      }
+    );
+  }, []);
   return (
     <YStack bg="$white1" gap="$3" pb="$4" br={16}>
       <YStack ai="center" py="$6" px="$4" gap="$2" bg="$purple6" br={16}>
@@ -83,9 +120,20 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
             <Button.Text>Share</Button.Text>
           </Button>
         </XStack>
-        <Progress size="$2" value={amountSaved} max={targetAmount} bg="$white2">
-          <Progress.Indicator animation="bouncy" br="$4" bg="$purple3" />
-        </Progress>
+        <XStack ai="center" gap="$2">
+          <Progress
+            flex={1}
+            size="$2"
+            value={percentage}
+            max={100}
+            bg="$purple1"
+          >
+            <Progress.Indicator animation="100ms" br="$4" bg="$purple4" />
+          </Progress>
+          <Text fos="$1" fow="600" color="$white1">
+            {percentage}%
+          </Text>
+        </XStack>
       </YStack>
 
       <XStack jc="space-between" px="$4" ai="center">
@@ -105,6 +153,8 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
           variant={isLocked ? "gray" : "primary"}
           disabled={isLocked}
           f={1}
+          loading={isWithdrawing}
+          onPress={onWithdrawPress}
         >
           <Button.Icon>
             <Icon name="ri:arrow-right-up-line" />
@@ -121,10 +171,16 @@ function TransactionsPane({ id }: { id: string }) {
   const { width } = useWindowDimensions();
   const theme = useTheme();
 
-  const { data, isLoading } = targetSavingRouter.getTransactions.useQuery({
+  const {
+    data,
+    isLoading,
+    refetch: refetchTransactions,
+  } = targetSavingRouter.getTransactions.useQuery({
     variables: { id },
     select: (data) => data.items,
   });
+
+  useRegisterRefetch(refetchTransactions);
 
   return (
     <YStack bg="$white1" br={16} p="$5" gap="$2">
@@ -152,19 +208,29 @@ function TransactionsPane({ id }: { id: string }) {
           </>
         ) : (
           data
-            ?.splice(0, 5)
-            .map((transaction) => (
-              <TransactionItem
-                channel={transaction.channel}
-                variant={
-                  transaction.transaction_type === "CREDIT"
-                    ? "received"
-                    : "sent"
-                }
-                amount={transaction.amount}
-                date={transaction.transaction_date}
-              />
-            ))
+            ?.toReversed()
+            .splice(0, 5)
+            .map((transaction) => {
+              const channel =
+                transaction.transaction_status === "success"
+                  ? transaction.transaction_type === "CREDIT"
+                    ? "Saved from Wallet"
+                    : "Withdraw to Wallet"
+                  : transaction.transaction_status;
+              return (
+                <TransactionItem
+                  key={transaction.id}
+                  channel={channel}
+                  variant={
+                    transaction.transaction_type === "CREDIT"
+                      ? "received"
+                      : "sent"
+                  }
+                  amount={transaction.amount}
+                  date={transaction.createdAt}
+                />
+              );
+            })
         )}
       </YStack>
     </YStack>
@@ -176,57 +242,116 @@ const depositSchema = z.object({
 });
 type DepositSchema = z.infer<typeof depositSchema>;
 function DepositButton({ id }: { id: string }) {
-  const [open, setOpen] = React.useState(false);
+  // hooks
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const theme = useTheme();
   const user = useStore((s) => s.user!);
-  const { mutate, isPending, data } =
-    targetSavingRouter.fundAccount.useMutation({
-      onSuccess(data) {
-        console.log(data);
-        setOpen(true);
-        bottomSheetModalRef.current?.close();
-      },
-    });
-  const { control, handleSubmit, getValues } = useForm<DepositSchema>({
-    resolver: zodResolver(depositSchema),
-  });
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
-  const paymentUri = React.useMemo(() => {
-    const amount = getValues().amount;
-    if (!data) return;
-    return paymentGenerator.generatePaymentLink({
-      checkoutAmount: amount,
-      emailAddress: user.email,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      phoneNumber: user.telephone_no,
-      transactionReference: data.data.transaction_reference,
-    });
-  }, [data]);
+
+  // state
+  const [method, setMethod] = React.useState<"bank" | "wallet" | "none">(
+    "none"
+  );
+
   // callbacks
   const handlePresentModalPress = React.useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
   const handleSheetChanges = React.useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
+    if (index === -1) {
+      setMethod("none");
+    }
   }, []);
 
-  const onSubmit = React.useCallback((data: DepositSchema) => {
-    mutate({
-      id,
-    });
+  const onClose = React.useCallback(() => {
+    bottomSheetModalRef.current?.close();
+    setMethod("none");
   }, []);
-  const onNavigationStateChange = React.useCallback(
-    async (state: WebViewNavigation) => {
-      const { url } = state;
-      console.log(url);
-      // if the url is the close url, close the sheet(i.e if the payment is successful)
-      if (url?.startsWith(REDIRECT_URL)) {
-        setOpen(false);
+  const onSubmit = React.useCallback(
+    async ({ amount }: DepositSchema) => {
+      switch (method) {
+        case "bank":
+          const res = await fundAccount({
+            id,
+          });
+          const paymentLink = paymentGenerator.generatePaymentLink({
+            checkoutAmount: amount,
+            emailAddress: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            phoneNumber: user.telephone_no,
+            transactionReference: res.data.transaction_reference,
+          });
+          router.push({
+            pathname: "/(protected)/payment/[uri]",
+            params: {
+              uri: paymentLink,
+              redirect: `/(protected)/target-savings/${id}`,
+            },
+          });
+          break;
+        case "wallet":
+          fundFromWallet({
+            amount,
+            id,
+          });
+          break;
+        default:
+          break;
       }
     },
-    []
+    [method, user]
   );
-  console.log("paymentUri", paymentUri);
+
+  // mutations
+  const { control, handleSubmit, getValues } = useForm<DepositSchema>({
+    resolver: zodResolver(depositSchema),
+  });
+
+  const {
+    mutateAsync: fundAccount,
+    isPending: isFundAccountPending,
+    // data: fundAccountData,
+  } = targetSavingRouter.fundAccount.useMutation({
+    onSuccess(data) {
+      onClose();
+      toast.success(data.message);
+    },
+    onError: handleError(),
+  });
+  const {
+    mutate: fundFromWallet,
+    isPending: isFundFromWalletPending,
+    // data: fundFromWalletData,
+  } = targetSavingRouter.fundFromWallet.useMutation({
+    onSuccess(data) {
+      toast.success(data.message);
+      const hi = walletRouter.getWalletDetails.getFetchOptions();
+      Promise.all([
+        queryClient.invalidateQueries(
+          walletRouter.getWalletDetails.getOptions()
+        ),
+        queryClient.invalidateQueries(
+          targetSavingRouter.getById.getOptions({
+            id,
+          })
+        ),
+        queryClient.invalidateQueries(
+          targetSavingRouter.getTransactions.getOptions({
+            id,
+          })
+        ),
+      ]);
+      onClose();
+    },
+    onError: handleError(),
+  });
+
+  // Derived states
+  const isPending = isFundAccountPending || isFundFromWalletPending;
+  const showAmountInput = method !== "none";
+
   return (
     <>
       <Button f={1} onPress={handlePresentModalPress}>
@@ -237,66 +362,122 @@ function DepositButton({ id }: { id: string }) {
       </Button>
       <BottomSheetModal ref={bottomSheetModalRef} onChange={handleSheetChanges}>
         <BottomSheetKeyboardAwareScrollView bottomOffset={16}>
-          <YStack gap="$2" px="$5" pb="$6">
-            <Text fos="$4" fow="600" ta="center">
-              Deposit to Target Savings
-            </Text>
-            <Controller
-              control={control}
-              name="amount"
-              render={({
-                field: { onBlur, value, onChange },
-                formState: { errors },
-              }) => (
-                <Input variant="grey" size="md" minWidth="100%">
-                  <Input.Label mb="$1.5">Enter Amount</Input.Label>
-                  <Input.Box>
-                    <Input.Area
-                      onChangeText={onChange}
-                      keyboardType="number-pad"
-                      {...{ onBlur, value: value?.toString() }}
+          <YStack pt="$4" pb="$8" px="$5">
+            {showAmountInput ? (
+              <YStack gap="$2">
+                <Text fos="$4" fow="600" ta="center">
+                  Deposit to Target Savings
+                </Text>
+                <Controller
+                  control={control}
+                  name="amount"
+                  render={({
+                    field: { onBlur, value, onChange },
+                    formState: { errors },
+                  }) => (
+                    <Input variant="grey" size="md" minWidth="100%">
+                      <Input.Label mb="$1.5">Enter Amount</Input.Label>
+                      <Input.Box>
+                        <Input.Area
+                          onChangeText={onChange}
+                          keyboardType="number-pad"
+                          {...{ onBlur, value: value?.toString() }}
+                        />
+                      </Input.Box>
+                      {errors.amount ? (
+                        <Input.SubText error>
+                          {errors.amount.message}
+                        </Input.SubText>
+                      ) : null}
+                    </Input>
+                  )}
+                />
+                <Button
+                  loading={isPending}
+                  onPress={handleSubmit(onSubmit)}
+                  // disabled={isSubmitting}
+                  size="lg"
+                  bg="$purple6"
+                >
+                  <Button.Text>Deposit</Button.Text>
+                </Button>
+              </YStack>
+            ) : (
+              <YStack gap="$2">
+                <Text fos="$4" fow="700">
+                  Fund Your Wallet
+                </Text>
+                <YStack gap="$2">
+                  <XStack
+                    ai="center"
+                    bg="$white2"
+                    gap={8}
+                    p="$3"
+                    br="$4"
+                    onPress={() => setMethod("bank")}
+                  >
+                    <View
+                      bg="$purple5"
+                      h={48}
+                      w={48}
+                      br={8}
+                      ai="center"
+                      jc="center"
+                    >
+                      <Icon name="ri:bank-fill" size={24} color="#fff" />
+                    </View>
+                    <YStack f={1}>
+                      <Text color="$black1" fow="600">
+                        Deposit from bank
+                      </Text>
+                      <Text color="$black6" fos="$1">
+                        Add money directly from your bank
+                      </Text>
+                    </YStack>
+                    <Icon
+                      name="ri:arrow-right-s-line"
+                      size={24}
+                      color={theme.black1.val}
                     />
-                  </Input.Box>
-                  {errors.amount ? (
-                    <Input.SubText error>{errors.amount.message}</Input.SubText>
-                  ) : null}
-                </Input>
-              )}
-            />
-            <Button
-              mt="$2"
-              onPress={handleSubmit(onSubmit)}
-              // disabled={isSubmitting}
-              loading={isPending}
-              size="lg"
-              bg="$purple6"
-            >
-              <Button.Text>Deposit</Button.Text>
-            </Button>
+                  </XStack>
+                  <XStack
+                    ai="center"
+                    bg="$white2"
+                    gap={8}
+                    p="$3"
+                    br="$4"
+                    onPress={() => setMethod("wallet")}
+                  >
+                    <View
+                      bg="$purple5"
+                      h={48}
+                      w={48}
+                      br={8}
+                      ai="center"
+                      jc="center"
+                    >
+                      <Icon name="ri:bank-card-fill" size={24} color="#fff" />
+                    </View>
+                    <YStack f={1}>
+                      <Text color="$black1" fow="600">
+                        Deposit from wallet
+                      </Text>
+                      <Text color="$black6" fos="$1">
+                        Add money directly from your wallet balance
+                      </Text>
+                    </YStack>
+                    <Icon
+                      name="ri:arrow-right-s-line"
+                      size={24}
+                      color={theme.black1.val}
+                    />
+                  </XStack>
+                </YStack>
+              </YStack>
+            )}
           </YStack>
         </BottomSheetKeyboardAwareScrollView>
       </BottomSheetModal>
-      <Sheet
-        open={open}
-        onOpenChange={setOpen}
-        snapPointsMode={"percent"}
-        snapPoints={[90]}
-        dismissOnSnapToBottom
-        zIndex={100_000}
-        animation="quick"
-        modal
-      >
-        <Sheet.Overlay />
-
-        <Sheet.Handle />
-        <Sheet.Frame padding="$4" gap="$5" bg="white" mb="$8" br="$4">
-          <WebView
-            source={{ uri: paymentUri ?? "" }}
-            style={{ flex: 1 }}
-            onNavigationStateChange={onNavigationStateChange}
-          />
-        </Sheet.Frame>
-      </Sheet>
     </>
   );
 }

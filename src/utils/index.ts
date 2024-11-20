@@ -7,6 +7,7 @@ import { AxiosError, isAxiosError } from "axios";
 import { openURL } from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 import { ToastAndroid } from "react-native";
+import { toast } from "sonner-native";
 
 const ACCESS_TOKEN_KEY = "access-token";
 
@@ -172,7 +173,6 @@ export enum ErrorSeverity {
 interface ErrorHandlingOptions {
   customMessage?: string;
   severity?: ErrorSeverity;
-  retry?: boolean;
   logToServer?: boolean;
 }
 
@@ -191,11 +191,10 @@ const ERROR_SEVERITY_CONSOLE_METHOD = {
  * and specific HTTP status code handling.
  *
  * @param config - Configuration object for the error handler
- * @param config.customHandler - Optional function to handle errors in a custom way
+ * @param config.handler - Optional function to handle errors in a custom way
  * @param config.options - Error handling options
  * @param config.options.customMessage - Custom error message to display
  * @param config.options.severity - Severity level of the error (default: ERROR)
- * @param config.options.retry - Whether to attempt a retry (default: false)
  * @param config.options.logToServer - Whether to log the error to a server (default: false)
  *
  * @returns A function that can be used in the onError callback of useMutation
@@ -203,7 +202,7 @@ const ERROR_SEVERITY_CONSOLE_METHOD = {
  * @example
  * useMutation({
  *   onError: handleError({
- *     customHandler: myCustomHandler,
+ *     handler: myCustomHandler,
  *     options: {
  *       severity: ErrorSeverity.WARNING,
  *       retry: true,
@@ -214,23 +213,25 @@ const ERROR_SEVERITY_CONSOLE_METHOD = {
  */
 export function handleError(
   config: {
-    customHandler?: (error: AxiosError, options?: ErrorHandlingOptions) => void;
+    handler?: (error: AxiosError, options?: ErrorHandlingOptions) => void;
     options?: ErrorHandlingOptions;
   } = { options: {} }
 ) {
-  const { customHandler, options } = config;
+  const { handler, options } = config;
   return (error: unknown) => {
     if (error instanceof AxiosError) {
-      if (customHandler) {
-        return customHandler(error, options);
+      if (handler) {
+        return handler(error, options);
       }
 
       const {
         customMessage,
         severity = ErrorSeverity.ERROR,
-        retry = false,
-        logToServer = false,
-      } = options;
+        logToServer,
+      } = options ?? {
+        severity: ErrorSeverity.ERROR,
+        logToServer: false,
+      };
 
       let message =
         customMessage || error.response?.data?.message || "An error occurred";
@@ -240,11 +241,7 @@ export function handleError(
         error
       );
 
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-
-      if (retry) {
-        console.log("Retrying...");
-      }
+      toast.error(message);
 
       if (logToServer) {
         console.log("Logging to server...");

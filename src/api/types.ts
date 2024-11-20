@@ -66,7 +66,17 @@ export interface Recipient {
   bank_name: string;
 }
 
-export interface CreateTargetSavingsResponse extends BaseResponse {}
+export interface CreateTargetSavingsResponse extends BaseResponse {
+  data: {
+    amount_per_frequency: number;
+    end_date: Date;
+    id: string;
+    savings_name: string;
+    start_date: Date;
+    target_amount: number;
+    user: string;
+  };
+}
 
 export interface GetAllTargetSavingsResponse {
   items: TargetSaving[];
@@ -95,7 +105,23 @@ export interface TargetSaving {
 }
 export type GetTargetSavingsByIdResponse = TargetSaving;
 
-export type GetTargetSavingTransactionsResponse = GetTransactionsResponse;
+export interface GetTargetSavingTransactionsResponse {
+  items: TargetSavingTransaction[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface TargetSavingTransaction {
+  id: string;
+  saving_reference_id: string;
+  transaction_reference: string;
+  transaction_status: string;
+  amount: number;
+  transaction_type: string;
+  createdAt: string;
+}
 
 export interface FundTargetSavingAccountResponse extends BaseResponse {
   data: {
@@ -106,3 +132,6 @@ export interface FundTargetSavingAccountResponse extends BaseResponse {
     transaction_reference: string;
   };
 }
+
+export interface FundTargetSavingFromWalletResponse extends BaseResponse {}
+export interface WithdrawTargetSavingsResponse extends BaseResponse {}

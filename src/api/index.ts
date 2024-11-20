@@ -210,6 +210,31 @@ export const fundTargetSavingAccount = async ({ id }: { id: string }) => {
   return res.data;
 };
 
+export const fundTargetSavingFromWallet = async ({
+  id,
+  amount,
+}: {
+  id: string;
+  amount: number;
+}) => {
+  const res = await api.post<ApiTypes.FundTargetSavingFromWalletResponse>(
+    "/target-savings/fund-from-wallet/" + id,
+    null,
+    {
+      params: {
+        amount,
+      },
+    }
+  );
+  return res.data;
+};
+
+export const withdrawTargetSavings = async ({ id }: { id: string }) => {
+  const res = await api.post<ApiTypes.WithdrawTargetSavingsResponse>(
+    "/target-savings/withdraw/" + id
+  );
+  return res.data;
+};
 // #endregion
 
 //#region Webhook API functions

@@ -15,6 +15,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner-native";
 import { View, YStack } from "tamagui";
 import { z } from "zod";
+import { isAxiosErrorWithMessage } from "@/utils";
 
 const signinFormSchema = z.object({
   email: z.string().email(),
@@ -30,8 +31,10 @@ const Signin = () => {
       await saveUser(data.data);
       router.push("/(protected)/(tabs)");
     },
-    onError: () => {
-      toast.error("An error occurred");
+    onError: (err) => {
+      if (isAxiosErrorWithMessage(err)) {
+        toast.error(err?.response?.data.message ?? "An error occurred");
+      }
     },
   });
   const { control, handleSubmit } = useForm<SigninFormSchema>({

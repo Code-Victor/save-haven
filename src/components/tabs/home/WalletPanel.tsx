@@ -1,5 +1,6 @@
 import { walletRouter } from "@/api/routers";
 import { WalletDetailsResponse } from "@/api/types";
+import { useRegisterRefetch } from "@/components/RefreshScrollView";
 import { Skeleton } from "@/components/Skeleton";
 import { TransactionItem } from "@/components/TransactionItem";
 import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
@@ -15,12 +16,19 @@ import { Sheet, Spinner, View, XStack, YStack, useTheme } from "tamagui";
 
 export function WalletPanel() {
   const theme = useTheme();
-  const { data: walletDetails, isLoading } =
-    walletRouter.getWalletDetails.useQuery({});
-  const { data: transactions, isLoading: isLoadingTransactions } =
-    walletRouter.getTransactions.useQuery({
-      select: (data) => data.items,
-    });
+  const {
+    data: walletDetails,
+    isLoading,
+    refetch: refetchWalletDetails,
+  } = walletRouter.getWalletDetails.useQuery({});
+  const {
+    data: transactions,
+    isLoading: isLoadingTransactions,
+    refetch: refetchTransactions,
+  } = walletRouter.getTransactions.useQuery({
+    select: (data) => data.items,
+  });
+  useRegisterRefetch(refetchWalletDetails, refetchTransactions);
   const transcationUI = React.useMemo(() => {
     if (isLoadingTransactions) {
       return (
@@ -186,13 +194,13 @@ function AccountNumberBtn(props: WalletDetailsResponse) {
           padding="$4"
           gap="$5"
           bg="white"
-          width={"95%"}
-          mx="2.5%"
           mb="$8"
           br="$4"
+          width={"95%"}
+          mx="2.5%"
           disableHideBottomOverflow
         >
-          <Text fos="$4" fow="600">
+          <Text fos="$4" fow="700">
             Fund Your Wallet
           </Text>
           <YStack bg="$white2" p="$3" br="$4">

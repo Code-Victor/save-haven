@@ -55,7 +55,7 @@ export const ButtonFrame = styled(View, {
   variants: {
     size: {
       sm: {
-        px: 7.68,
+        px: 10,
         height: buttonHeight.sm,
         gap: 6.25,
         hitSlop: 10,

@@ -14,6 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner-native";
 import { View, YStack } from "tamagui";
 import { z } from "zod";
+import { isAxiosErrorWithMessage } from "@/utils";
 
 const signupFormSchema = z.object({
   email: z.string().email(),
@@ -31,8 +32,10 @@ const Signup = () => {
         },
       });
     },
-    onError: () => {
-      toast.error("An Error Occured");
+    onError: (err) => {
+      if (isAxiosErrorWithMessage(err)) {
+        toast.error(err?.response?.data.message ?? "An error occurred");
+      }
     },
   });
   const router = useRouter();

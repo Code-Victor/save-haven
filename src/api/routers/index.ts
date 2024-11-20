@@ -2,6 +2,7 @@
 import { router } from "react-query-kit";
 import * as api from "..";
 
+const MINUTE = 60 * 1000;
 export const authRouter = router("auth", {
   onboardUser: router.mutation({ mutationFn: api.onboardUser }),
   verifyOTP: router.mutation({ mutationFn: api.verifyOTP }),
@@ -15,7 +16,10 @@ export const walletRouter = router("wallet", {
   getWalletDetails: router.query({ fetcher: api.getWalletDetails }),
   createWithdrawalPin: router.mutation({ mutationFn: api.createWithdrawalPin }),
   transferFunds: router.mutation({ mutationFn: api.transferFunds }),
-  getTransactions: router.query({ fetcher: api.getTransactions }),
+  getTransactions: router.query({
+    fetcher: api.getTransactions,
+    refetchInterval: MINUTE,
+  }),
   getTransactionByReference: router.query({
     fetcher: api.getTransactionByReference,
   }),
@@ -44,11 +48,19 @@ export const targetSavingRouter = router("target-savings", {
   }),
   getById: router.query({
     fetcher: api.getTargetSavingsById,
+    refetchInterval: MINUTE,
   }),
   getTransactions: router.query({
     fetcher: api.getTargetSavingTransactions,
+    refetchInterval: MINUTE,
   }),
   fundAccount: router.mutation({
     mutationFn: api.fundTargetSavingAccount,
+  }),
+  fundFromWallet: router.mutation({
+    mutationFn: api.fundTargetSavingFromWallet,
+  }),
+  withdraw: router.mutation({
+    mutationFn: api.withdrawTargetSavings,
   }),
 });
