@@ -1,5 +1,5 @@
 import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
-import { TABBAR_HEIGHT_OFFSET } from "@/constants";
+import { FRONTEND_URL, TABBAR_HEIGHT_OFFSET } from "@/constants";
 import { savingsOptions } from "@/data";
 import { Image } from "expo-image";
 import { Link, Stack } from "expo-router";
@@ -15,9 +15,9 @@ import {
   Progress,
 } from "tamagui";
 import * as React from "react";
-import { targetSavingRouter } from "@/api/routers";
-import { FlatList, ListRenderItem, RefreshControl } from "react-native";
-import { TargetSaving } from "@/api/types";
+import { crowdfundingRouter } from "@/api/routers";
+import { FlatList, ListRenderItem, RefreshControl, Share } from "react-native";
+import { Campaign, TargetSaving } from "@/api/types";
 import { monify } from "@/utils";
 
 export default function CreateTargetSavingsScreen() {
@@ -26,9 +26,10 @@ export default function CreateTargetSavingsScreen() {
 
   const safeAreaInsets = useSafeAreaInsets();
   const { data, isLoading, isRefetching, refetch } =
-    targetSavingRouter.getAll.useQuery({
+    crowdfundingRouter.getAll.useQuery({
       select: (data) => data.items,
     });
+
   const ListEmptyComponent = React.useMemo(() => {
     return (
       <YStack ai="center" jc="center" f={1}>
@@ -42,32 +43,30 @@ export default function CreateTargetSavingsScreen() {
               color={theme.black6.val}
             />
             <Text fow="500" fos="$4" color="$black6">
-              No Target Savings yet
+              No Crowdfunding campaigns yet
             </Text>
           </>
         )}
       </YStack>
     );
   }, [isLoading]);
-  const renderItem: ListRenderItem<TargetSaving> = React.useCallback(
-    ({ item }) => {
-      return (
-        <TargetItem
-          id={item.id}
-          name={item.savings_name}
-          targetAmount={item.target_amount}
-          amountSaved={item.amount_saved}
-        />
-      );
-    },
-    []
-  );
+
+  const renderItem: ListRenderItem<Campaign> = React.useCallback(({ item }) => {
+    return (
+      <CampaignCard
+        id={item.id}
+        name={item.campaign_title}
+        targetAmount={item.target_amount}
+        amountRaised={item.amount_raised}
+      />
+    );
+  }, []);
 
   return (
     <YStack f={1} pos="relative">
       <Stack.Screen
         options={{
-          title: "Your Target Savings",
+          title: "Crowdfunding Campaigns",
         }}
       />
       <FlatList
@@ -80,7 +79,6 @@ export default function CreateTargetSavingsScreen() {
           paddingHorizontal: safeAreaInsets.left + 20,
         }}
         ItemSeparatorComponent={() => <View h={16} />}
-        renderItem={renderItem}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
@@ -88,40 +86,56 @@ export default function CreateTargetSavingsScreen() {
             tintColor={theme.purple6.val}
           />
         }
+        renderItem={renderItem}
         ListEmptyComponent={ListEmptyComponent}
       />
-      <Link href="/(protected)/target-savings/create" asChild>
+      <Link href="/(protected)/crowdfunding/create" asChild>
         <Button pos="absolute" bottom={48 + safeAreaInsets.bottom} right={20}>
           <Button.Icon>
             <Icon name="ri:add-large-fill" />
           </Button.Icon>
-          <Button.Text>New Target Savings </Button.Text>
+          <Button.Text>New campaign </Button.Text>
         </Button>
       </Link>
     </YStack>
   );
 }
 
-function TargetItem({
+function CampaignCard({
   id,
   name,
   targetAmount,
-  amountSaved,
+  amountRaised,
 }: {
   id: string;
   name: string;
   targetAmount: number;
-  amountSaved: number;
+  amountRaised: number;
 }) {
+  const { data: transactionRef, isLoading: isLoadingTransactionRef } =
+    crowdfundingRouter.shareCampaign.useQuery({
+      variables: { id },
+      select(data) {
+        return data.data.transaction_reference;
+      },
+    });
   const percentage = React.useMemo(() => {
-    return Math.round((amountSaved / targetAmount) * 100);
-  }, [amountSaved, targetAmount]);
-
+    if (targetAmount === 0 && amountRaised === 0) {
+      return 100;
+    }
+    return Math.round((amountRaised / targetAmount) * 100);
+  }, [amountRaised, targetAmount]);
+  const onShare = React.useCallback(() => {
+    const url = `${FRONTEND_URL}/campaign?id=${id}&transaction_ref=${transactionRef}`;
+    Share.share({
+      message: url,
+    });
+  }, [id, transactionRef]);
   // const
   return (
     <Link
       href={{
-        pathname: "/(protected)/target-savings/[id]/",
+        pathname: "/(protected)/crowdfunding/[id]/",
         params: {
           name,
           id,
@@ -129,15 +143,37 @@ function TargetItem({
       }}
       asChild
     >
-      <YStack ai="center" py="$6" px="$4" gap="$2" bg="$purple1" br={16}>
+      <YStack ai="center" py="$6" px="$4" gap="$2" bg="$green2" br={16}>
         <XStack>
           <YStack f={1}>
-            <Text fow="500">{name}</Text>
-            <Text fos="$6" fow="700">
+            <Text
+              fos="$5"
+              fow="700"
+              color="$purple5"
+              numberOfLines={1}
+              mb="$2"
+              tt="capitalize"
+            >
+              {name}
+            </Text>
+            <Text color="$purple5" fos="$2" fow="500">
+              <Text color="$green9" fos="$2" fow="500">
+                Progress:
+              </Text>{" "}
+              {monify(amountRaised)}
+            </Text>
+            <Text color="$purple5" fos="$2" fow="500">
+              <Text color="$green9" fos="$2" fow="500">
+                Target:
+              </Text>{" "}
               {monify(targetAmount)}
             </Text>
           </YStack>
-          <Button size="sm">
+          <Button
+            size="sm"
+            disabled={isLoadingTransactionRef}
+            onPress={onShare}
+          >
             <Button.Icon>
               <Icon name="ri:share-forward-line" />
             </Button.Icon>

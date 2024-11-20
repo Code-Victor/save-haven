@@ -2,6 +2,9 @@ import axios, { AxiosError } from "axios";
 import { getAccessToken } from "@/utils";
 import * as ApiTypes from "./types";
 const BASE_URL = "https://genetic-holli-yayako-30b6a681.koyeb.app";
+import { Cloudinary } from "@cloudinary/url-gen";
+// import { upload } from "cloudinary-react-native";
+// const cld = new Cloudinary({ cloud: { cloudName: "dgvcc0rmr" } });
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -124,6 +127,22 @@ export const getWalletDetails = async () => {
   return res.data;
 };
 
+export const fundWallet = async ({
+  account_number,
+  ...data
+}: {
+  account_number: string;
+  amount: number;
+  sender_account_number: string;
+  sender_account_name: string;
+  sender_bank_name: string;
+}) => {
+  const res = await api.post<ApiTypes.FundWalletResponse>(
+    "/wallet/fund-virtual-account/" + account_number,
+    data
+  );
+  return res.data;
+};
 export interface CreateWithdrawalPinResponse {}
 export const createWithdrawalPin = (password: string) =>
   api.post<CreateWithdrawalPinResponse>("/wallet/create-withdrawal-pin", {
@@ -225,6 +244,70 @@ export const fundTargetSavingFromWallet = async ({
         amount,
       },
     }
+  );
+  return res.data;
+};
+
+export const withdrawCampaignSavings = async ({ id }: { id: string }) => {
+  const res = await api.post<ApiTypes.WithdrawCampaignResponse>(
+    "/crowdfunding/withdraw-funds/" + id
+  );
+  return res.data;
+};
+export const getCampaignTransactions = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetCampaignTransactionsResponse>(
+    "/crowdfunding/transactions/" + id
+  );
+  return res.data;
+};
+
+// #endregion
+
+//#region Crowdfunding
+export interface CreateCampaignOptions {
+  campaign_title: string;
+  campaign_story: string;
+  target_amount: number;
+  campaign_category: string;
+  is_personal: boolean;
+  images: {
+    uri: string;
+    name: string;
+    type: string;
+  }[];
+  state: string;
+}
+
+export const createCampaign = async ({
+  images,
+  ...rest
+}: CreateCampaignOptions) => {
+  const res = await api.post<ApiTypes.CreateCampaignResponse>(
+    "crowdfunding/create-campaign",
+    {
+      ...rest,
+      images: [],
+    }
+  );
+  return res.data;
+};
+
+export const getCampaignById = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetCampaignByIdResponse>(
+    "/crowdfunding/get-campaign/" + id
+  );
+  return res.data;
+};
+export const getAllCampaigns = async () => {
+  const res = await api.get<ApiTypes.GetCampaignsResponse>(
+    "/crowdfunding/get-campaigns"
+  );
+  return res.data;
+};
+
+export const shareCampaign = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.ShareCampaignResponse>(
+    "/crowdfunding/share-campaign/" + id
   );
   return res.data;
 };

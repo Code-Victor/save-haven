@@ -7,7 +7,7 @@ import {
 import { Skeleton } from "@/components/Skeleton";
 import { TransactionItem } from "@/components/TransactionItem";
 import { Button, Icon, Input, Text } from "@/components/base";
-import { TABBAR_HEIGHT_OFFSET } from "@/constants";
+import { FRONTEND_URL, TABBAR_HEIGHT_OFFSET } from "@/constants";
 import { useStore } from "@/stores";
 import { handleError, monify, paymentGenerator } from "@/utils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -16,7 +16,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Alert } from "react-native";
+import { Alert, Share } from "react-native";
 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
@@ -98,16 +98,18 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
       ],
       {
         cancelable: true,
+        userInterfaceStyle: "light",
       }
     );
   }, []);
+
   return (
     <YStack bg="$white1" gap="$3" pb="$4" br={16}>
       <YStack ai="center" py="$6" px="$4" gap="$2" bg="$purple6" br={16}>
         <XStack>
           <YStack f={1}>
             <Text fow="500" color="$white1">
-              {name}
+              {name ?? targetSaving?.savings_name}
             </Text>
             <Text fos="$6" fow="700" color="$white1">
               {monify(targetAmount)}

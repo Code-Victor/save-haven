@@ -1,18 +1,27 @@
 import { walletRouter } from "@/api/routers";
 import { WalletDetailsResponse } from "@/api/types";
+import BottomSheetKeyboardAwareScrollView from "@/components/BottomSheetKeyboardAwareScrollView";
 import { useRegisterRefetch } from "@/components/RefreshScrollView";
 import { Skeleton } from "@/components/Skeleton";
 import { TransactionItem } from "@/components/TransactionItem";
-import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
+import { Button, Icon, Input, Text } from "@/components/base";
 import { color } from "@/config/colors";
-import { monify } from "@/utils";
-import Color from "color";
+import { handleError, monify } from "@/utils";
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+} from "@gorhom/bottom-sheet";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { Link } from "expo-router";
 import * as React from "react";
+import { Controller, useForm } from "react-hook-form";
 import { Share } from "react-native";
 import { toast } from "sonner-native";
 import { Sheet, Spinner, View, XStack, YStack, useTheme } from "tamagui";
+import { z } from "zod";
 
 export function WalletPanel() {
   const theme = useTheme();
@@ -116,12 +125,7 @@ export function WalletPanel() {
               <Button.Text>Transfer</Button.Text>
             </Button>
           </Link>
-          <Button f={1}>
-            <Button.Icon>
-              <Icon name="ri:add-circle-fill" size={24} />
-            </Button.Icon>
-            <Button.Text>Fund Wallet</Button.Text>
-          </Button>
+          <FundWalletButton accountNumber={walletDetails?.account_number} />
         </XStack>
       </YStack>
     </>
@@ -251,6 +255,180 @@ function AccountNumberBtn(props: WalletDetailsResponse) {
           </XStack>
         </Sheet.Frame>
       </Sheet>
+    </>
+  );
+}
+
+const fundWalletSchema = z.object({
+  amount: z.coerce.number().positive("Amount must be positive").gt(0),
+  accountNumber: z.string().nonempty("Account number is required"),
+  bankName: z.string().nonempty("Bank name is required"),
+  acoountName: z.string().nonempty("Account name is required"),
+});
+type FundWalletSchema = z.infer<typeof fundWalletSchema>;
+function FundWalletButton({ accountNumber }: { accountNumber?: string }) {
+  const queryClient = useQueryClient();
+  const { mutate, isPending } = walletRouter.fundWallet.useMutation({
+    onSuccess({ message }) {
+      toast.success(message);
+      Promise.all([
+        queryClient.invalidateQueries(
+          walletRouter.getWalletDetails.getOptions()
+        ),
+        queryClient.invalidateQueries(
+          walletRouter.getTransactions.getOptions()
+        ),
+      ]);
+    },
+    onError: handleError(),
+  });
+  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
+  const handleSheetChanges = React.useCallback((index: number) => {}, []);
+  const { control, handleSubmit } = useForm<FundWalletSchema>({
+    resolver: zodResolver(fundWalletSchema),
+  });
+  const onSubmit = React.useCallback(
+    (data: FundWalletSchema) => {
+      mutate({
+        account_number: accountNumber!,
+        amount: data.amount,
+        sender_account_name: data.acoountName,
+        sender_account_number: data.accountNumber,
+        sender_bank_name: data.bankName,
+      });
+    },
+    [accountNumber]
+  );
+  const handlePresentModalPress = React.useCallback(() => {
+    bottomSheetModalRef.current?.present();
+  }, []);
+  const renderBackdrop = React.useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop {...props} pressBehavior="close" />
+    ),
+    []
+  );
+  return (
+    <>
+      <Button f={1} onPress={handlePresentModalPress}>
+        <Button.Icon>
+          <Icon name="ri:add-circle-fill" size={24} />
+        </Button.Icon>
+        <Button.Text>Fund Wallet</Button.Text>
+      </Button>
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        onChange={handleSheetChanges}
+        backdropComponent={renderBackdrop}
+      >
+        <BottomSheetKeyboardAwareScrollView bottomOffset={16}>
+          <YStack gap="$2" pt="$4" pb="$8" px="$5">
+            <Text fos="$4" fow="600" ta="center">
+              Deposit to Target Savings
+            </Text>
+            <Controller
+              control={control}
+              name="amount"
+              render={({
+                field: { onBlur, value, onChange },
+                formState: { errors },
+              }) => (
+                <Input variant="grey" size="md" minWidth="100%">
+                  <Input.Label mb="$1.5">Enter Amount</Input.Label>
+                  <Input.Box>
+                    <Input.Area
+                      onChangeText={onChange}
+                      keyboardType="number-pad"
+                      {...{ onBlur, value: value?.toString() }}
+                    />
+                  </Input.Box>
+                  {errors.amount ? (
+                    <Input.SubText error>{errors.amount.message}</Input.SubText>
+                  ) : null}
+                </Input>
+              )}
+            />
+            <Controller
+              control={control}
+              name="accountNumber"
+              render={({
+                field: { onBlur, value, onChange },
+                formState: { errors },
+              }) => (
+                <Input variant="grey" size="md" minWidth="100%">
+                  <Input.Label mb="$1.5">Account Number</Input.Label>
+                  <Input.Box>
+                    <Input.Area
+                      onChangeText={onChange}
+                      {...{ onBlur, value }}
+                    />
+                  </Input.Box>
+                  {errors.accountNumber ? (
+                    <Input.SubText error>
+                      {errors.accountNumber.message}
+                    </Input.SubText>
+                  ) : null}
+                </Input>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="bankName"
+              render={({
+                field: { onBlur, value, onChange },
+                formState: { errors },
+              }) => (
+                <Input variant="grey" size="md" minWidth="100%">
+                  <Input.Label mb="$1.5">Bank Name</Input.Label>
+                  <Input.Box>
+                    <Input.Area
+                      onChangeText={onChange}
+                      {...{ onBlur, value }}
+                    />
+                  </Input.Box>
+                  {errors.bankName ? (
+                    <Input.SubText error>
+                      {errors.bankName.message}
+                    </Input.SubText>
+                  ) : null}
+                </Input>
+              )}
+            />
+            <Controller
+              control={control}
+              name="acoountName"
+              render={({
+                field: { onBlur, value, onChange },
+                formState: { errors },
+              }) => (
+                <Input variant="grey" size="md" minWidth="100%">
+                  <Input.Label mb="$1.5">Account Name</Input.Label>
+                  <Input.Box>
+                    <Input.Area
+                      onChangeText={onChange}
+                      {...{ onBlur, value }}
+                    />
+                  </Input.Box>
+                  {errors.acoountName ? (
+                    <Input.SubText error>
+                      {errors.acoountName.message}
+                    </Input.SubText>
+                  ) : null}
+                </Input>
+              )}
+            />
+            <Button
+              onPress={handleSubmit(onSubmit)}
+              loading={isPending}
+              size="lg"
+              bg="$purple6"
+            >
+              <Button.Text>Deposit</Button.Text>
+            </Button>
+          </YStack>
+        </BottomSheetKeyboardAwareScrollView>
+      </BottomSheetModal>
     </>
   );
 }

@@ -27,6 +27,9 @@ export interface User {
   last_name: string;
   telephone_no: string;
 }
+export interface FundWalletResponse extends BaseResponse {
+  transaction_reference: string;
+}
 
 export interface WalletDetailsResponse {
   user: string;
@@ -135,3 +138,86 @@ export interface FundTargetSavingAccountResponse extends BaseResponse {
 
 export interface FundTargetSavingFromWalletResponse extends BaseResponse {}
 export interface WithdrawTargetSavingsResponse extends BaseResponse {}
+export interface CreateCampaignResponse extends BaseResponse {
+  status: number;
+  data: {
+    _id: string;
+    campaign_title: string;
+    campaign_category: string;
+    target_amount: number;
+    campaign_story: string;
+    state: string;
+    is_personal: boolean;
+    images: string[];
+    transaction_reference_id: string;
+  };
+}
+
+export interface GetCampaignByIdResponse {
+  status: number;
+  message: string;
+  data: Campaign;
+}
+
+export interface GetCampaignsResponse {
+  items: Campaign[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface Campaign {
+  id: string;
+  user: string;
+  transaction_reference_id: string;
+  campaign_title: string;
+  campaign_story: string;
+  target_amount: number;
+  amount_raised: number;
+  images: any[];
+  state: string;
+  status: string;
+  campaign_category: string;
+  is_locked: boolean;
+  is_personal: boolean;
+  createdAt: Date;
+  is_deleted: boolean;
+}
+
+export interface ShareCampaignResponse {
+  message: string;
+  data: {
+    email: string;
+    first_name: null;
+    last_name: null;
+    phone_number: string;
+    transaction_reference: string;
+  };
+}
+
+export interface GetCampaignTransactionsResponse {
+  items: CampaignTransaction[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface CampaignTransaction {
+  id: string;
+  transaction_reference_id: string;
+  transaction_reference: string;
+  transaction_status: string;
+  amount: number;
+  transaction_type: string;
+  createdAt: string;
+  account: string;
+  donor: Donor;
+}
+
+export interface Donor {
+  account_name: string;
+  bank_name: string;
+}
+export interface WithdrawCampaignResponse extends BaseResponse {}

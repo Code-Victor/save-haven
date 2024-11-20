@@ -1,20 +1,11 @@
-import { walletRouter } from "@/api/routers";
-import { WalletDetailsResponse } from "@/api/types";
-import { Skeleton } from "@/components/Skeleton";
-import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
-import { color } from "@/config/colors";
+import { Icon, Text, UnifiedIconName } from "@/components/base";
 import { monify } from "@/utils";
 import Color from "color";
-import * as Clipboard from "expo-clipboard";
-import { Link } from "expo-router";
-import * as React from "react";
-import { Share } from "react-native";
-import { toast } from "sonner-native";
-import { Sheet, View, XStack, YStack, useTheme } from "tamagui";
+import { View, XStack, YStack, useTheme } from "tamagui";
 
-type TransactionVariant = "sent" | "received" | "failed";
+type TransactionVariant = "sent" | "received";
 export function TransactionItem(props: {
-  variant: "sent" | "received" | "failed";
+  variant: "sent" | "received";
   date: string;
   amount: number;
   channel: string;
@@ -23,23 +14,17 @@ export function TransactionItem(props: {
   const icons = {
     sent: "ri:arrow-right-up-line",
     received: "ri:arrow-left-down-line",
-    failed: "ri:error-warning-line",
+    // failed: "ri:error-warning-line",
   } as const satisfies Record<TransactionVariant, UnifiedIconName>;
   const colors = {
-    sent: theme.green6.val,
-    received: theme.purple6.val,
-    failed: "#FF0000",
+    sent: "#FF3B30",
+    received: "#468C3F",
+    // failed: "#FF0000",
   } as const satisfies Record<TransactionVariant, string>;
+  const lightColor = Color(colors[props.variant]).alpha(0.1).string();
   return (
     <XStack ai="center" gap="$4" py="$1.5">
-      <View
-        h={40}
-        w={40}
-        ai="center"
-        jc="center"
-        br={20}
-        bg={Color(colors[props.variant]).alpha(0.1).string()}
-      >
+      <View h={40} w={40} ai="center" jc="center" br={20} bg={lightColor}>
         <Icon
           name={icons[props.variant]}
           color={colors[props.variant]}
@@ -60,7 +45,14 @@ export function TransactionItem(props: {
           })}
         </Text>
       </YStack>
-      <Text fow="500">{monify(props.amount)}</Text>
+      <YStack gap="$2">
+        <Text fow="500">{monify(props.amount)}</Text>
+        <View bg={lightColor} px="$2" py="$0.5" br="$8" alignSelf="flex-start">
+          <Text color={colors[props.variant]} fos="$1" fow="500">
+            {props.variant === "sent" ? "Withdraw" : "Deposit"}
+          </Text>
+        </View>
+      </YStack>
     </XStack>
   );
 }

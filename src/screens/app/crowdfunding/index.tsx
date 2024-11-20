@@ -2,7 +2,7 @@ import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
 import { TABBAR_HEIGHT_OFFSET } from "@/constants";
 import { savingsOptions } from "@/data";
 import { Image } from "expo-image";
-import { Stack } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScrollView, useTheme, View, XStack, YStack } from "tamagui";
 
@@ -20,7 +20,7 @@ export default function CrowdfundingScreen() {
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: theme.white2.val,
-          paddingBottom: safeAreaInsets.bottom + 16 + TABBAR_HEIGHT_OFFSET,
+          paddingBottom: safeAreaInsets.bottom + 16,
           paddingTop: 16,
           paddingHorizontal: safeAreaInsets.left + 20,
         }}
@@ -33,10 +33,18 @@ export default function CrowdfundingScreen() {
             ))}
           </YStack>
         </YStack>
-        <Button mt="$16">
-          <Button.Text>Create Target Saving</Button.Text>
-        </Button>
-        <YStack gap="$4" pt="$3"></YStack>
+        <YStack gap="$2" mt="$12">
+          <Link href="/(protected)/crowdfunding/all" asChild>
+            <Button variant="outlined">
+              <Button.Text>View all Campaigns</Button.Text>
+            </Button>
+          </Link>
+          <Link href="/(protected)/crowdfunding/create" asChild>
+            <Button>
+              <Button.Text>Create Campaign</Button.Text>
+            </Button>
+          </Link>
+        </YStack>
       </ScrollView>
     </>
   );

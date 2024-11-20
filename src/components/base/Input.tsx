@@ -6,7 +6,7 @@ import {
   withStaticProperties,
 } from "@tamagui/core";
 import React from "react";
-import { Keyboard, TextInput } from "react-native";
+import { FlatList, Keyboard, TextInput } from "react-native";
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -20,6 +20,8 @@ import {
   useControllableState,
   XStack,
 } from "tamagui";
+import * as ExpoImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 
 type Size = "sm" | "md" | "lg";
 type Variant = "outlined" | "grey";
@@ -449,23 +451,27 @@ export const OTPInput: React.FC<OTPInputProps> = ({
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { Pressable } from "react-native";
 import { Icon } from "./Icon";
+import { isNonEmptyArray } from "@/utils";
+import { Button, IconButton } from "./Button";
 
 export function DatePicker(
   props: React.ComponentProps<typeof DateTimePicker> & {
     mode: "date" | "time" | "datetime";
   }
 ) {
-  const show = (currentMode: "time" | "date") => () => {
-    DateTimePickerAndroid.open({
-      value: props.value,
-      onChange: props.onChange,
-      mode: currentMode,
-      minimumDate: props.minimumDate,
-      maximumDate: props.maximumDate,
-    });
-  };
+  const show = React.useCallback(
+    (currentMode: "time" | "date") => () => {
+      DateTimePickerAndroid.open({
+        value: props.value,
+        onChange: props.onChange,
+        mode: currentMode,
+        minimumDate: props.minimumDate,
+        maximumDate: props.maximumDate,
+      });
+    },
+    []
+  );
   const isDate = props.mode.includes("date");
   return (
     <XStack
@@ -495,6 +501,83 @@ export function DatePicker(
     </XStack>
   );
 }
+interface PickerImage {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+type ImagePickerProps = {
+  value?: PickerImage[];
+  onChange?: (image: PickerImage[]) => void;
+};
+export function ImagePicker(props: ImagePickerProps) {
+  const pickImage = React.useCallback(async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ExpoImagePicker.launchImageLibraryAsync({
+      mediaTypes: ExpoImagePicker.MediaTypeOptions.Images,
+      aspect: [4, 3],
+      allowsMultipleSelection: true,
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      const newImages = result.assets.flatMap((image) => {
+        const splittedUri = image.uri.split("/").reverse();
+        if (!isNonEmptyArray(splittedUri)) {
+          console.warn("file has no name and is ignored.");
+          return [];
+        }
+        const [name] = splittedUri;
+        if (image.mimeType) {
+          return [
+            {
+              name,
+              uri: image.uri,
+              type: image.mimeType,
+            },
+          ];
+        }
+        return [];
+      });
+      props.onChange?.(newImages);
+    }
+  }, []);
+  if (!props.value) {
+    return (
+      <Button
+        onPress={pickImage}
+        variant="gray"
+        size="sm"
+        alignSelf="flex-start"
+      >
+        <Button.Icon>
+          <Icon name="ri:upload-2-line" size={24} color="#000" />
+        </Button.Icon>
+        <Button.Text color="#000">Pick an image</Button.Text>
+      </Button>
+    );
+  }
+  return (
+    <FlatList
+      horizontal
+      data={props.value}
+      keyExtractor={(item) => item.uri}
+      contentContainerStyle={{ gap: 8, width: "100%", paddingVertical: 16 }}
+      renderItem={({ item, index }) => (
+        <Image
+          source={{ uri: item.uri }}
+          style={{
+            width: 80,
+            height: 80,
+          }}
+        />
+      )}
+    />
+  );
+}
 /* 
 Usage:
 ```tsx
@@ -516,4 +599,5 @@ export const Input = withStaticProperties(InputGroupFrameImpl, {
   SubText: InputSubText,
   OTP: OTPInput,
   DatePicker,
+  ImagePicker,
 });
