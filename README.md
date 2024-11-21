@@ -7,6 +7,7 @@ SaveHaven is here to tackle a challenge many Africans faced in managing finances
   <img width="260" src="./docs/preview-2.jpg" alt="Demo">
   <img width="260" src="./docs/preview-3.jpg" alt="Demo">
 </p>
+
 > Built with [Expo](https://expo.dev/)
 
 ## 📋 Table of Content
