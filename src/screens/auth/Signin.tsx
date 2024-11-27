@@ -32,6 +32,7 @@ const Signin = () => {
       router.push("/(protected)/(tabs)");
     },
     onError: (err) => {
+      console.log(err);
       if (isAxiosErrorWithMessage(err)) {
         toast.error(err?.response?.data.message ?? "An error occurred");
       }

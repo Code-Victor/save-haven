@@ -20,8 +20,10 @@ const VerifyEmail = () => {
   const [otpReady, setOtpReady] = React.useState(false);
   const { mutate, isPending } = authRouter.verifyOTP.useMutation({
     onSuccess: (data) => {
-      router.push({ pathname: "/(auth)/create-account", params: { email } });
       toast.success(data.message);
+      router.push({
+        pathname: "/(auth)/signin",
+      });
     },
     onError: (err) => {
       if (isAxiosErrorWithMessage(err)) {
@@ -62,11 +64,11 @@ const VerifyEmail = () => {
       <YStack gap="$9" px="$5" f={1}>
         <YStack gap="$4">
           <Text ff="$gilroy" fow="600" fos="$7" ta="center" color="$purple6">
-            Verify Email
+            Verify Otp
           </Text>
           <Text color="$black4" fow="500" ta="center" mx="auto" maxWidth={324}>
-            We just sent your verification code to your email, please enter the
-            code below
+            We just sent your verification code to your email({email}), please
+            enter the code below
           </Text>
         </YStack>
         <YStack gap="$4">
@@ -103,7 +105,7 @@ const VerifyEmail = () => {
           onPress={handleSubmit(onSubmit)}
           full
         >
-          <Button.Text>Verify Email</Button.Text>
+          <Button.Text>Verify</Button.Text>
         </Button>
       </YStack>
     </SafeArea>
