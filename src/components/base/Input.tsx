@@ -212,6 +212,31 @@ const InputSubText = styled(Text, {
   },
 });
 
+const PasswordInput = (props: React.ComponentProps<typeof InputImpl>) => {
+  const [showPassword, setShowPassword] = React.useState(false);
+  const toggleShowPassword = React.useCallback(
+    () => setShowPassword((prev) => !prev),
+    []
+  );
+  return (
+    <Input.Box>
+      <Input.Area
+        placeholder="••••••••"
+        secureTextEntry={!showPassword}
+        {...props}
+      />
+      <IconButton variant="ghost" size="sm" onPress={toggleShowPassword}>
+        <IconButton.Icon>
+          <Icon
+            name={!showPassword ? "ri:eye-line" : "ri:eye-off-line"}
+            size={20}
+          />
+        </IconButton.Icon>
+      </IconButton>
+    </Input.Box>
+  );
+};
+
 // Types
 interface OTPInputProps {
   value?: string;
@@ -597,6 +622,7 @@ export const Input = withStaticProperties(InputGroupFrameImpl, {
   Box: InputBoxImpl,
   Area: InputImpl,
   SubText: InputSubText,
+  Password: PasswordInput,
   OTP: OTPInput,
   DatePicker,
   ImagePicker,
