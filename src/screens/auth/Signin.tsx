@@ -29,7 +29,7 @@ const Signin = () => {
     onSuccess: async (data) => {
       toast.success(data.message);
       await saveUser(data.data);
-      router.push("/(protected)/(tabs)");
+      router.replace("/(protected)/(tabs)");
     },
     onError: (err) => {
       console.log(err);

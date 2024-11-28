@@ -32,11 +32,11 @@ const actions = [
 
 export function ActionsPanel() {
   return (
-    <YStack mt="$4" gap="$3">
-      <Text fos="$4" fow="600">
+    <YStack mt="$5" gap="$2.5" px="$4">
+      <Text fos="$2" color="$black9" fow="600">
         Take Action
       </Text>
-      <XStack>
+      <XStack bg="$white1" px="$2" py="$4" br={16}>
         {actions.map((action) => (
           <ActionItem key={action.name} {...action} />
         ))}
@@ -54,7 +54,6 @@ function ActionItem(props: (typeof actions)[0]) {
         ai="center"
         br="$4"
         px="$1"
-        py="$2"
         pos="relative"
         animation="bouncy"
         transform={[{ scale: 1 }]}
@@ -68,7 +67,7 @@ function ActionItem(props: (typeof actions)[0]) {
         disabled={comingSoon}
       >
         <View
-          bg="$white1"
+          bg="$purple1"
           aspectRatio={1}
           width="70%"
           borderRadius={9999}
@@ -78,7 +77,7 @@ function ActionItem(props: (typeof actions)[0]) {
         >
           <Icon name={props.icon} size={28} />
         </View>
-        <Text fow="500" fos="$1" ta="center" opacity={comingSoon ? 0.5 : 1}>
+        <Text fow="500" fos={10} ta="center" opacity={comingSoon ? 0.5 : 1}>
           {props.name}
         </Text>
         {props.comingSoon && (

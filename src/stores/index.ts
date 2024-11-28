@@ -5,6 +5,7 @@ import {
   subscribeWithSelector,
 } from "zustand/middleware";
 import createUserSlice, { type UserSlice } from "./slices/user";
+import createLayoutSlice, { type LayoutSlice } from "./slices/layout";
 
 import { StateStorage } from "zustand/middleware";
 import { MMKV } from "react-native-mmkv";
@@ -27,7 +28,7 @@ const mmkvStorage = (storage: MMKV): StateStorage => ({
 });
 
 // Define the slices and the state creator
-type Slices = UserSlice;
+type Slices = UserSlice & LayoutSlice;
 export type StateCreator<T> = ZStateCreator<Slices, [], [], T>;
 
 /**
@@ -45,6 +46,7 @@ export const useStore = create<Slices>()(
     persist(
       (...a) => ({
         ...createUserSlice(...a),
+        ...createLayoutSlice(...a),
       }),
       {
         name: "savehaven-store",
@@ -52,6 +54,7 @@ export const useStore = create<Slices>()(
         partialize: (state) => ({
           user: state.user,
           expoPushToken: state.expoPushToken,
+          showBalance: state.showBalance,
         }),
         version: 0.02,
       }

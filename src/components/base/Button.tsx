@@ -6,10 +6,15 @@ import {
   withStaticProperties,
 } from "@tamagui/core";
 import Color from "color";
-import { AnimatePresence, Spinner, Text, useTheme } from "tamagui";
+import { Spinner, Text, useTheme } from "tamagui";
 
 import { IconType } from "@/types";
 import React, { cloneElement, useContext } from "react";
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  LayoutAnimationConfig,
+} from "react-native-reanimated";
 
 type Size = "sm" | "md" | "lg";
 type Variant =
@@ -57,7 +62,7 @@ export const ButtonFrame = styled(View, {
       sm: {
         px: 10,
         height: buttonHeight.sm,
-        gap: 6.25,
+        gap: 7,
         hitSlop: 10,
       },
       md: {
@@ -171,11 +176,11 @@ type ButtonFrameExtraProps = {
 };
 export type ButtonFrameProps = GetProps<typeof ButtonFrame> &
   ButtonFrameExtraProps;
-
+const AnimatedButtonContainer =
+  Animated.createAnimatedComponent(ButtonContainer);
 export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
   ({ loading, children, ...buttonFrameProps }, forwardedRef) => {
     const id = React.useId();
-    const mounted = React.useRef(false);
     const size = buttonFrameProps.size ?? defaultContextValues.size;
     const variant = buttonFrameProps.variant ?? defaultContextValues.variant;
     const height = buttonHeight[size];
@@ -190,57 +195,36 @@ export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
       }),
       [theme]
     );
-    React.useEffect(() => {
-      mounted.current = true;
-      return () => {
-        mounted.current = false;
-      };
-    }, []);
+
     return (
       <ButtonFrame ref={forwardedRef} {...buttonFrameProps}>
-        <AnimatePresence>
+        <LayoutAnimationConfig skipEntering skipExiting>
           {loading ? (
-            <View
+            <Animated.View
               key={`spinner-container-${id}`}
-              exitStyle={{
-                y: -height,
+              style={{
+                height: "100%",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-              enterStyle={
-                mounted.current
-                  ? {
-                      y: height,
-                    }
-                  : {}
-              }
-              animation="quick"
-              f={1}
-              ai="center"
-              jc="center"
-              pos="absolute"
-              top={0}
-              left={0}
-              right={0}
-              bottom={0}
+              entering={FadeInDown.springify().damping(80).stiffness(200)}
+              exiting={FadeOutUp.springify().damping(80).stiffness(200)}
             >
               <Spinner
                 color={iconColor[variant]}
                 size={size === "lg" ? "large" : "small"}
               />
-            </View>
+            </Animated.View>
           ) : (
-            <ButtonContainer
+            <AnimatedButtonContainer
               key={`btn-container-${id}`}
-              enterStyle={mounted.current ? { y: height } : {}}
-              exitStyle={{
-                y: -height,
-              }}
-              animation="quick"
-              size={buttonFrameProps?.size ?? defaultContextValues.size}
+              entering={FadeInDown.springify().damping(80).stiffness(200)}
+              exiting={FadeOutUp.springify().damping(80).stiffness(200)}
             >
               {children}
-            </ButtonContainer>
+            </AnimatedButtonContainer>
           )}
-        </AnimatePresence>
+        </LayoutAnimationConfig>
       </ButtonFrame>
     );
   }

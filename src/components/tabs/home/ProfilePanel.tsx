@@ -2,12 +2,32 @@ import { Icon, IconButton, Text } from "@/components/base";
 import { useStore } from "@/stores";
 import { Image } from "expo-image";
 import { View, XStack } from "tamagui";
+import * as React from "react";
+import { getAvatar } from "@/utils";
 export function ProfilePanel() {
   const user = useStore((s) => s.user!);
+  const userName = React.useMemo(
+    () => `${user.first_name} ${user.last_name}`,
+    [user.first_name, user.last_name]
+  );
+  const avatarUrl = React.useMemo(
+    () => getAvatar({ name: userName }),
+    [userName]
+  );
+
   return (
-    <XStack bg="$white1" px="$3" gap="$4" mt="$4" ai="center" h="$6" br={16}>
+    <XStack
+      bg="$white1"
+      px="$3"
+      gap="$4"
+      mt="$4"
+      ai="center"
+      h="$6"
+      mx="$4"
+      br={16}
+    >
       <Image
-        source={"https://avatars.githubusercontent.com/u/47269261?v=4"}
+        source={avatarUrl}
         style={{ width: 40, height: 40, borderRadius: 20 }}
       />
       <View f={1}>
