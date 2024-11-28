@@ -210,10 +210,7 @@ export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
               entering={FadeInDown.springify().damping(80).stiffness(200)}
               exiting={FadeOutUp.springify().damping(80).stiffness(200)}
             >
-              <Spinner
-                color={iconColor[variant]}
-                size={size === "lg" ? "large" : "small"}
-              />
+              <Spinner color={iconColor[variant]} size={"small"} />
             </Animated.View>
           ) : (
             <AnimatedButtonContainer

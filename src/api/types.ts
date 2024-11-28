@@ -10,6 +10,7 @@ export interface OnboardUserResponse extends BaseResponse {
 }
 
 export interface VerifyOTPResponse extends BaseResponse {}
+export interface ResendOTPResponse extends BaseResponse {}
 export interface UserSignUpResponse extends BaseResponse {}
 export interface UserLoginResponse extends BaseResponse {
   data: User & {

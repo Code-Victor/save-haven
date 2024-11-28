@@ -62,7 +62,13 @@ tokenInterceptors({ log: true });
 
 // Auth API functions
 
-export const onboardUser = async (data: { email: string }) => {
+export const onboardUser = async (data: {
+  name: string;
+  email: string;
+  telephone_no: string;
+  password: string;
+  confirm_password: string;
+}) => {
   const res = await api.post<ApiTypes.OnboardUserResponse>(
     "/auth/onboard-user",
     data
@@ -86,18 +92,9 @@ export const verifyOTP = async ({
   return res.data;
 };
 
-export const userSignUp = async (data: {
-  email: string;
-  firstName: string;
-  lastName: string;
-  telephone_no: string;
-  address: string;
-  password: string;
-  confirm_password: string;
-}) => {
-  const res = await api.post<ApiTypes.UserSignUpResponse>(
-    `/auth/sign-up/${data.email}`,
-    data
+export const resendOTP = async ({ email }: { email: string }) => {
+  const res = await api.post<ApiTypes.ResendOTPResponse>(
+    `/auth/resend-otp/${email}`
   );
   return res.data;
 };

@@ -41,7 +41,7 @@ const Signup = () => {
   const [footerHeight, setFooterHeight] = React.useState(0);
   const { mutate, isPending } = authRouter.onboardUser.useMutation({
     onSuccess: (data) => {
-      toast.success("Check your email");
+      toast.success("Check your email for OTP");
       router.push({
         pathname: "/(auth)/verify-email",
         params: {
@@ -53,6 +53,7 @@ const Signup = () => {
       if (isAxiosErrorWithMessage(err)) {
         toast.error(err?.response?.data.message ?? "An error occurred");
       }
+      toast.error("An error occurred");
     },
   });
   const router = useRouter();
@@ -63,7 +64,13 @@ const Signup = () => {
     setFooterHeight(evt.nativeEvent.layout.height);
   }, []);
   const onSubmit = React.useCallback((data: SignupFormSchema) => {
-    mutate(data);
+    mutate({
+      name: data.name,
+      email: data.email,
+      telephone_no: data.phoneNumber,
+      password: data.password,
+      confirm_password: data.confirmPassword,
+    });
   }, []);
   return (
     <KeyboardGestureArea
@@ -75,7 +82,10 @@ const Signup = () => {
     >
       <SafeArea flex={1} bg="$background">
         <View f={1}>
-          <KeyboardAwareScrollView bottomOffset={24 + footerHeight}>
+          <KeyboardAwareScrollView
+            bottomOffset={24 + footerHeight}
+            keyboardShouldPersistTaps="handled"
+          >
             <View ai="center" jc="center">
               <Icon name="save-haven-emblem" size={160} />
             </View>

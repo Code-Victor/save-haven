@@ -6,7 +6,7 @@ const MINUTE = 60 * 1000;
 export const authRouter = router("auth", {
   onboardUser: router.mutation({ mutationFn: api.onboardUser }),
   verifyOTP: router.mutation({ mutationFn: api.verifyOTP }),
-  userSignUp: router.mutation({ mutationFn: api.userSignUp }),
+  resendOTP: router.mutation({ mutationFn: api.resendOTP }),
   userLogin: router.mutation({ mutationFn: api.userLogin }),
   forgotPassword: router.mutation({ mutationFn: api.forgotPassword }),
   // createPassword: router.mutation({ mutationFn: api.createPassword }),
