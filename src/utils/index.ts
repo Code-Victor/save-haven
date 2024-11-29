@@ -413,26 +413,32 @@ export const paymentGenerator = createPaymentLinkGenerator({
   merchantKey: "PZ78-PKTEST-942F4045-28B7-4EDF-8805-15EF1B3F9BFF",
 });
 
-// Example usage:
-/*
-const paymentGenerator = createPaymentLinkGenerator({
-  merchantKey: 'your_merchant_key_here',
-});
+/**
+ * Split a full name into first and last name components
+ * @param fullName - The full name to be split
+ * @returns An object with firstName and lastName
+ */
+export function splitName(fullName: string): {
+  firstName: string;
+  lastName: string;
+} {
+  // Remove extra whitespace and split
+  const nameParts = fullName.trim().split(/\s+/);
 
-const paymentLink = paymentGenerator.generatePaymentLink({
-  checkoutAmount: 1000,
-  currencyCode: 'NGN',
-  emailAddress: 'user@example.com',
-  firstName: 'John',
-  lastName: 'Doe',
-  phoneNumber: '1234567890',
-  transactionReference: 'TX123456',
-  redirectUrl: 'https://your-redirect-url.com',
-  additionalDetails: {
-    orderId: '12345',
-    productName: 'Premium Subscription'
+  // If only one name is provided
+  if (nameParts.length <= 1) {
+    return {
+      firstName: fullName.trim(),
+      lastName: "",
+    };
   }
-});
 
-console.log(paymentLink);
-*/
+  // Last part is last name, everything before is first name
+  const lastName = nameParts[nameParts.length - 1];
+  const firstName = nameParts.slice(0, -1).join(" ");
+
+  return {
+    firstName: firstName.trim(),
+    lastName: lastName.trim(),
+  };
+}

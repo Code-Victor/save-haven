@@ -183,11 +183,9 @@ const InputImpl = InputFrame.styleable((props, ref) => {
     <InputFrame
       ref={ref}
       onFocus={() => {
-        console.log("onFocus");
         setFocused(true);
       }}
       onBlur={() => {
-        console.log("onBlur");
         setFocused(false);
       }}
       size={size}
@@ -545,8 +543,6 @@ export function ImagePicker(props: ImagePickerProps) {
       allowsMultipleSelection: true,
       quality: 1,
     });
-
-    console.log(result);
 
     if (!result.canceled) {
       const newImages = result.assets.flatMap((image) => {

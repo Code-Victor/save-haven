@@ -1,7 +1,7 @@
 import { SafeArea } from "@/components/base";
 import TransactionList from "@/components/tabs/history/TransactionsList";
 import { REDIRECT_URL } from "@/constants";
-import { Stack } from "expo-router";
+import { Href, Stack } from "expo-router";
 import { Redirect, useLocalSearchParams, useRouter } from "expo-router";
 import * as React from "react";
 import { WebView, WebViewNavigation } from "react-native-webview";
@@ -16,12 +16,11 @@ export default function PaymentScreen() {
   const onNavigationStateChange = React.useCallback(
     async (state: WebViewNavigation) => {
       const { url } = state;
-      console.log(url);
       // if the url is the close url, close the sheet(i.e if the payment is successful)
       if (url?.startsWith(REDIRECT_URL)) {
         toast.info("Payment is being processed");
         if (redirect) {
-          router.navigate(redirect);
+          router.navigate(redirect as Href);
         }
       }
     },

@@ -18,7 +18,7 @@ import * as React from "react";
 import { crowdfundingRouter } from "@/api/routers";
 import { FlatList, ListRenderItem, RefreshControl, Share } from "react-native";
 import { Campaign, TargetSaving } from "@/api/types";
-import { monify } from "@/utils";
+import { handleError, monify } from "@/utils";
 
 export default function CreateTargetSavingsScreen() {
   const theme = useTheme();
@@ -112,12 +112,9 @@ function CampaignCard({
   targetAmount: number;
   amountRaised: number;
 }) {
-  const { data: transactionRef, isLoading: isLoadingTransactionRef } =
-    crowdfundingRouter.shareCampaign.useQuery({
-      variables: { id },
-      select(data) {
-        return data.data.transaction_reference;
-      },
+  const { mutateAsync: shareCampaign, isPending: isLoadingTransactionRef } =
+    crowdfundingRouter.shareCampaign.useMutation({
+      onError: handleError(),
     });
   const percentage = React.useMemo(() => {
     if (targetAmount === 0 && amountRaised === 0) {
@@ -125,12 +122,16 @@ function CampaignCard({
     }
     return Math.round((amountRaised / targetAmount) * 100);
   }, [amountRaised, targetAmount]);
-  const onShare = React.useCallback(() => {
+  const onShare = React.useCallback(async () => {
+    const res = await shareCampaign({
+      id,
+    });
+    const transactionRef = res.data.transaction_reference;
     const url = `${FRONTEND_URL}/campaign?id=${id}&transaction_ref=${transactionRef}`;
     Share.share({
       message: url,
     });
-  }, [id, transactionRef]);
+  }, [id]);
   // const
   return (
     <Link
@@ -169,11 +170,7 @@ function CampaignCard({
               {monify(targetAmount)}
             </Text>
           </YStack>
-          <Button
-            size="sm"
-            disabled={isLoadingTransactionRef}
-            onPress={onShare}
-          >
+          <Button size="sm" loading={isLoadingTransactionRef} onPress={onShare}>
             <Button.Icon>
               <Icon name="ri:share-forward-line" />
             </Button.Icon>

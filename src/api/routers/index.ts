@@ -76,8 +76,8 @@ export const crowdfundingRouter = router("crowdfunding", {
     fetcher: api.getCampaignById,
     refetchInterval: MINUTE,
   }),
-  shareCampaign: router.query({
-    fetcher: api.shareCampaign,
+  shareCampaign: router.mutation({
+    mutationFn: api.shareCampaign,
   }),
   getTransactions: router.query({
     fetcher: api.getCampaignTransactions,

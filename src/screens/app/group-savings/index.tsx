@@ -1,5 +1,4 @@
 import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
-import { TABBAR_HEIGHT_OFFSET } from "@/constants";
 import { savingsOptions } from "@/data";
 import { Image } from "expo-image";
 import { Stack } from "expo-router";
@@ -13,14 +12,14 @@ export default function GroupSavingsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: "Target Savings",
+          title: "Group Savings",
         }}
       />
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: theme.white2.val,
-          paddingBottom: safeAreaInsets.bottom + 16 + TABBAR_HEIGHT_OFFSET,
+          paddingBottom: safeAreaInsets.bottom + 16,
           paddingTop: 16,
           paddingHorizontal: safeAreaInsets.left + 20,
         }}

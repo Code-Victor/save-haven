@@ -39,7 +39,6 @@ export default function MakeTransfer() {
     resolver: zodResolver(transferFormSchema),
   });
   const onSubmit = React.useCallback((data: TransferFormSchema) => {
-    console.log(data);
     router.push("/(protected)/transfer/complete-transfer");
   }, []);
   const setBeneficiary = React.useCallback(

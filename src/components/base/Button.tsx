@@ -14,7 +14,11 @@ import Animated, {
   FadeInDown,
   FadeOutUp,
   LayoutAnimationConfig,
+  SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
 } from "react-native-reanimated";
+// import {OnLayout} from "react-native"
 
 type Size = "sm" | "md" | "lg";
 type Variant =
@@ -183,7 +187,8 @@ export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
     const id = React.useId();
     const size = buttonFrameProps.size ?? defaultContextValues.size;
     const variant = buttonFrameProps.variant ?? defaultContextValues.variant;
-    const height = buttonHeight[size];
+    const width = useSharedValue(0);
+
     const theme = useTheme();
     const iconColor = React.useMemo(
       () => ({
@@ -195,18 +200,24 @@ export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
       }),
       [theme]
     );
-
+    const LoadingViewStyle = useAnimatedStyle(() => {
+      return {
+        height: "100%",
+        width: width.value,
+        alignItems: "center",
+        justifyContent: "center",
+      };
+    });
+    const onButtonContainerLayout = React.useCallback((event: any) => {
+      width.value = event.nativeEvent.layout.width;
+    }, []);
     return (
       <ButtonFrame ref={forwardedRef} {...buttonFrameProps}>
         <LayoutAnimationConfig skipEntering skipExiting>
           {loading ? (
             <Animated.View
               key={`spinner-container-${id}`}
-              style={{
-                height: "100%",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={LoadingViewStyle}
               entering={FadeInDown.springify().damping(80).stiffness(200)}
               exiting={FadeOutUp.springify().damping(80).stiffness(200)}
             >
@@ -215,6 +226,7 @@ export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
           ) : (
             <AnimatedButtonContainer
               key={`btn-container-${id}`}
+              onLayout={onButtonContainerLayout}
               entering={FadeInDown.springify().damping(80).stiffness(200)}
               exiting={FadeOutUp.springify().damping(80).stiffness(200)}
             >

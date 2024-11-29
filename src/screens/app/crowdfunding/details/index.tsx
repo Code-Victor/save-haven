@@ -9,7 +9,7 @@ import { TransactionItem } from "@/components/TransactionItem";
 import { Button, Icon, Input, Text } from "@/components/base";
 import { FRONTEND_URL } from "@/constants";
 import { useStore } from "@/stores";
-import { handleError, monify, paymentGenerator } from "@/utils";
+import { handleError, monify, paymentGenerator, splitName } from "@/utils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -89,16 +89,17 @@ function PreviewCard({
         toast.success(message);
       },
     });
-  const {
-    data: transactionRef,
-    isLoading: isLoadingTransactionRef,
-    refetch: refetchTransactionRef,
-  } = crowdfundingRouter.shareCampaign.useQuery({
-    variables: { id },
-    select(data) {
-      return data.data.transaction_reference;
-    },
-  });
+  const { mutateAsync: shareCampaign, isPending: isLoadingTransactionRef } =
+    crowdfundingRouter.shareCampaign.useMutation({
+      onError: handleError(),
+      onSuccess({ data }) {
+        const transactionRef = data.transaction_reference;
+        const url = `${FRONTEND_URL}/campaign?id=${id}&transaction_ref=${transactionRef}`;
+        Share.share({
+          message: url,
+        });
+      },
+    });
   const { data: crowdfundingCampaign, refetch: refetchTargetSaving } =
     crowdfundingRouter.getById.useQuery({
       variables: { id },
@@ -106,7 +107,8 @@ function PreviewCard({
         return data.data;
       },
     });
-  useRegisterRefetch(refetchTargetSaving, refetchTransactionRef);
+  useRegisterRefetch(refetchTargetSaving);
+
   const isLocked = crowdfundingCampaign?.is_locked ?? true;
   const targetAmount = crowdfundingCampaign?.target_amount ?? 0;
   const amountRaised = crowdfundingCampaign?.amount_raised ?? 0;
@@ -136,12 +138,11 @@ function PreviewCard({
     );
   }, []);
 
-  const onSharePress = React.useCallback(() => {
-    const url = `${FRONTEND_URL}/campaign?id=${id}&transaction_ref=${transactionRef}`;
-    Share.share({
-      message: url,
+  const onSharePress = React.useCallback(async () => {
+    shareCampaign({
+      id,
     });
-  }, [id, transactionRef]);
+  }, [id]);
   return (
     <YStack bg="$white1" gap="$3" pb="$4" br={16}>
       <YStack ai="center" py="$6" px="$4" gap="$2" bg="$purple6" br={16}>
@@ -166,7 +167,7 @@ function PreviewCard({
           <Button
             size="sm"
             bg="$purple4"
-            disabled={isLoadingTransactionRef}
+            loading={isLoadingTransactionRef}
             onPressIn={onSharePress}
           >
             <Button.Icon>
@@ -219,7 +220,7 @@ function PreviewCard({
             <Button.Text>Withdraw</Button.Text>
           </Button>
         )}
-        <DepositButton {...{ id, transactionRef }} />
+        <DepositButton {...{ id }} />
       </XStack>
     </YStack>
   );
@@ -388,13 +389,7 @@ const depositSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive").gt(0),
 });
 type DepositSchema = z.infer<typeof depositSchema>;
-function DepositButton({
-  id,
-  transactionRef,
-}: {
-  id: string;
-  transactionRef?: string;
-}) {
+function DepositButton({ id }: { id: string }) {
   // hooks
   const router = useRouter();
   const { transaction_ref } = useLocalSearchParams<{
@@ -402,10 +397,25 @@ function DepositButton({
   }>();
   const user = useStore((s) => s.user!);
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
-
+  const {
+    data: campaign,
+    mutateAsync: shareCampaign,
+    isPending: isLoadingTransactionRef,
+  } = crowdfundingRouter.shareCampaign.useMutation({
+    onError: handleError(),
+    onSuccess() {
+      bottomSheetModalRef.current?.present();
+    },
+  });
   // callbacks
   const handlePresentModalPress = React.useCallback(() => {
-    bottomSheetModalRef.current?.present();
+    if (!transaction_ref) {
+      shareCampaign({
+        id,
+      });
+    } else {
+      bottomSheetModalRef.current?.present();
+    }
   }, []);
   const handleSheetChanges = React.useCallback((index: number) => {}, []);
 
@@ -414,12 +424,13 @@ function DepositButton({
   }, []);
   const onSubmit = React.useCallback(
     async ({ amount }: DepositSchema) => {
-      const ref = transaction_ref ?? transactionRef;
+      const ref = transaction_ref ?? campaign?.data.transaction_reference;
       if (!ref) {
         toast.info("Transaction reference is required, Try again");
         return;
       }
-      const [firstName, lastName] = user.name.split(" ").map((n) => n.trim());
+      const { firstName, lastName } = splitName(user.name);
+
       const paymentLink = paymentGenerator.generatePaymentLink({
         checkoutAmount: amount,
         emailAddress: user.email,
@@ -437,7 +448,7 @@ function DepositButton({
         },
       });
     },
-    [user]
+    [user, campaign]
   );
 
   // mutations
@@ -449,7 +460,12 @@ function DepositButton({
 
   return (
     <>
-      <Button f={1} size="sm" onPress={handlePresentModalPress}>
+      <Button
+        f={1}
+        size="sm"
+        loading={isLoadingTransactionRef}
+        onPress={handlePresentModalPress}
+      >
         <Button.Icon>
           <Icon name="ri:arrow-left-down-line" />
         </Button.Icon>
@@ -483,12 +499,7 @@ function DepositButton({
                 </Input>
               )}
             />
-            <Button
-              onPress={handleSubmit(onSubmit)}
-              // disabled={isSubmitting}
-              size="lg"
-              bg="$purple6"
-            >
+            <Button onPress={handleSubmit(onSubmit)} size="lg" bg="$purple6">
               <Button.Text>Deposit</Button.Text>
             </Button>
           </YStack>

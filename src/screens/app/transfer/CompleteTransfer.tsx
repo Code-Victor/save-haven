@@ -58,7 +58,6 @@ export default function CompleteTransfer() {
       transfactionFee: 0,
       ...data,
     });
-    console.log(data);
   }, []);
   const amount = watch("amount");
   const onClose = React.useCallback(() => {
@@ -433,7 +432,6 @@ function CreatePinCase({ next }: { next?: () => void }) {
                   maximumLength={4}
                   maskInput={false} // Enable masking
                   onComplete={() => {
-                    console.log("onComplete");
                     handleSubmit(onSubmit)();
                   }}
                   error={!!formState.errors.pin?.message}

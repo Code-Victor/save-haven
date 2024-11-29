@@ -128,18 +128,14 @@ export const PINInput: React.FC<PINInputProps> = ({
     defaultProp: "",
     onChange: (newValue) => {
       controlledOnChangeText?.(newValue);
-      console.log(newValue, maximumLength, newValue.length);
     },
   });
 
   // Effect for pin ready status
   React.useEffect(() => {
     if (value) {
-      console.log("value", value);
-      console.log("maximumLength", maximumLength);
       const isPinReady = value.length === maximumLength;
       setIsPinReady?.(isPinReady);
-      console.log("isPinReady", isPinReady);
       if (isPinReady) {
         onComplete?.(value);
       }
