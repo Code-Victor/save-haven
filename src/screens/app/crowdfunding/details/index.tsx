@@ -26,10 +26,13 @@ import {
   YStack,
   useTheme,
   useWindowDimensions,
+  Tabs,
+  SizableText,
 } from "tamagui";
 import { z } from "zod";
 
-export default function TargetSavingDetails() {
+// #region Crowdfunding Details
+export default function CrowdfundingDetails() {
   const user = useStore((state) => state.user!);
   const theme = useTheme();
   const { name, id } = useLocalSearchParams<{ name: string; id: string }>();
@@ -61,13 +64,15 @@ export default function TargetSavingDetails() {
       >
         <YStack gap="$3.5">
           <PreviewCard {...{ id, name, isOriginalPoster }} />
-          {isOriginalPoster && <TransactionsPane id={id} />}
+          {isOriginalPoster && <InfoTabs id={id} />}
         </YStack>
       </RefreshScrollView>
     </>
   );
 }
+// #endregion
 
+// #region Preview Card
 function PreviewCard({
   name,
   id,
@@ -219,7 +224,46 @@ function PreviewCard({
     </YStack>
   );
 }
+// #endregion
 
+// #region InfoTabs
+function InfoTabs({ id }: { id: string }) {
+  return (
+    <Tabs
+      flexDirection="column"
+      orientation="horizontal"
+      defaultValue="transaction"
+      bg="$white1"
+      br={16}
+    >
+      <Tabs.List
+        disablePassBorderRadius
+        aria-label="Manage your account"
+        borderBottomWidth={1}
+        borderBottomColor="$black025"
+        mb="$2"
+        gap="$2"
+        p="$1"
+      >
+        <Tabs.Tab size="$3" value="transaction" f={1}>
+          <SizableText>Transactions</SizableText>
+        </Tabs.Tab>
+        <Tabs.Tab size="$3" value="report" f={1}>
+          <SizableText>Report</SizableText>
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content value="transaction">
+        <TransactionsPane id={id} />
+      </Tabs.Content>
+      <Tabs.Content value="report">
+        <ReportPane id={id} />
+      </Tabs.Content>
+    </Tabs>
+  );
+}
+// #endregion
+
+// #region Transactions Pane
 function TransactionsPane({ id }: { id: string }) {
   const { width } = useWindowDimensions();
   const theme = useTheme();
@@ -236,7 +280,7 @@ function TransactionsPane({ id }: { id: string }) {
   useRegisterRefetch(refetchTransactions);
 
   return (
-    <YStack bg="$white1" br={16} p="$5" gap="$2">
+    <YStack bg="$white1" br={16} px="$4" pb="$4" gap="$2">
       <XStack ai="center" jc="space-between">
         <Text fow="600" fos="$2">
           Transaction History
@@ -252,7 +296,7 @@ function TransactionsPane({ id }: { id: string }) {
           <>
             <Icon
               name="not-found"
-              size={width * 0.7}
+              size={width * 0.5}
               color={theme.black6.val}
             />
             <Text fow="500" fos="$4" color="$black6">
@@ -288,7 +332,58 @@ function TransactionsPane({ id }: { id: string }) {
     </YStack>
   );
 }
+// #endregion
 
+// #region Report Pane
+function ReportPane({ id }: { id: string }) {
+  const { data: crowdfundingCampaign, isLoading } =
+    crowdfundingRouter.getById.useQuery({
+      variables: { id },
+      select(data) {
+        return data.data;
+      },
+    });
+  const targetAmount = crowdfundingCampaign?.target_amount ?? 0;
+  const amountRaised = crowdfundingCampaign?.amount_raised ?? 0;
+  return (
+    <YStack bg="$white1" br={16} px="$4" pb="$4" gap="$2">
+      <XStack ai="center" jc="space-between">
+        <Text fow="600" fos="$2">
+          Saving Report
+        </Text>
+      </XStack>
+      {isLoading ? (
+        <YStack ai="center" jc="center" minHeight="$6">
+          <Spinner size="large" color="$purple6" scale={1.5} />
+        </YStack>
+      ) : (
+        <YStack gap="$6">
+          <XStack px="$4" py="$2" br={8} jc="space-between" bg="$purple1">
+            <YStack gap="$1">
+              <Text fow="600" fos="$2" color="$black4">
+                Target Amount
+              </Text>
+              <Text fow="600" color="$purple6">
+                {monify(targetAmount)}
+              </Text>
+            </YStack>
+            <YStack gap="$1">
+              <Text ta="right" fow="600" fos="$2" color="$green9">
+                Amount Raised
+              </Text>
+              <Text ta="right" fow="600" color="$green9">
+                {monify(amountRaised)}
+              </Text>
+            </YStack>
+          </XStack>
+        </YStack>
+      )}
+    </YStack>
+  );
+}
+// #endregion
+
+// #region Deposit Button
 const depositSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive").gt(0),
 });
@@ -324,12 +419,12 @@ function DepositButton({
         toast.info("Transaction reference is required, Try again");
         return;
       }
-
+      const [firstName, lastName] = user.name.split(" ").map((n) => n.trim());
       const paymentLink = paymentGenerator.generatePaymentLink({
         checkoutAmount: amount,
         emailAddress: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
+        firstName,
+        lastName,
         phoneNumber: user.telephone_no,
         transactionReference: ref,
       });
@@ -402,3 +497,4 @@ function DepositButton({
     </>
   );
 }
+// #endregion

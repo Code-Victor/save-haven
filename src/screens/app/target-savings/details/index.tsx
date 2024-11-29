@@ -231,7 +231,7 @@ function TransactionsPane({ id }: { id: string }) {
           <>
             <Icon
               name="not-found"
-              size={width * 0.7}
+              size={width * 0.5}
               color={theme.black6.val}
             />
             <Text fow="500" fos="$4" color="$black6">
@@ -274,13 +274,11 @@ function TransactionsPane({ id }: { id: string }) {
 function ReportPane({ id }: { id: string }) {
   const { width } = useWindowDimensions();
   const theme = useTheme();
-  const {
-    data: targetSaving,
-    refetch: refetchTargetSaving,
-    isLoading,
-  } = targetSavingRouter.getById.useQuery({
-    variables: { id },
-  });
+  const { data: targetSaving, isLoading } = targetSavingRouter.getById.useQuery(
+    {
+      variables: { id },
+    }
+  );
   const targetAmount = targetSaving?.target_amount ?? 0;
   const amountSaved = targetSaving?.amount_saved ?? 0;
 
@@ -376,11 +374,15 @@ function DepositButton({ id }: { id: string }) {
           const res = await fundAccount({
             id,
           });
+          const [firstName, lastName] = user.name
+            .split(" ")
+            .map((n) => n.trim());
+
           const paymentLink = paymentGenerator.generatePaymentLink({
             checkoutAmount: amount,
             emailAddress: user.email,
-            firstName: user.first_name,
-            lastName: user.last_name,
+            firstName,
+            lastName,
             phoneNumber: user.telephone_no,
             transactionReference: res.data.transaction_reference,
           });
