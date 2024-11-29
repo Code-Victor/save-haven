@@ -22,37 +22,25 @@ import * as React from "react";
 import { crowdfundingRouter, targetSavingRouter } from "@/api/routers";
 import { isAxiosErrorWithMessage } from "@/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
-const campaignCategories = [
-  "EDUCATION",
-  "HEALTH",
-  "CHARITY",
-  "BUSINESS",
-  "PERSONAL",
-  "CREATIVE",
-  "EMERGENCY",
-  "OTHERS",
-] as const;
-const targetSavingsFormSchema = z.object({
-  title: z.string(),
-  story: z.string(),
+const frequencyOptions = {
+  DAILY: "Daily",
+  WEEKLY: "Weekly",
+  MONTHLY: "Monthly",
+  YEARLY: "Yearly",
+} as const;
+const groupSavingsFormSchema = z.object({
   targetAmount: z.coerce.number(),
-  images: z
-    .object({
-      uri: z.string(),
-      name: z.string(),
-      type: z.string(),
-    })
-    .array()
-    .max(3, {
-      message: "maximum of 3 images allowed for campaign",
-    }),
-  state: z.string(),
-  personal: z.boolean(),
-  category: z.enum(campaignCategories),
+  amountPerFrequency: z.coerce.number(),
+  numberOfMembers: z.coerce.number(),
+  name: z.string(),
+  startDate: z.string().nonempty("Start date is required"),
+  endDate: z.string().nonempty("End date is required"),
+  frequency: z.enum(["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]),
 });
-type TargetSavingsFormSchema = z.infer<typeof targetSavingsFormSchema>;
-export default function CreateCampaignScreen() {
+type GroupSavingsFormSchema = z.infer<typeof groupSavingsFormSchema>;
+export default function CreateGroupSavingsScreen() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const theme = useTheme();
@@ -80,23 +68,27 @@ export default function CreateCampaignScreen() {
     },
   });
   const safeAreaInsets = useSafeAreaInsets();
-  const { control, handleSubmit } = useForm<TargetSavingsFormSchema>({
-    resolver: zodResolver(targetSavingsFormSchema),
+  const { control, handleSubmit } = useForm<GroupSavingsFormSchema>({
+    resolver: zodResolver(groupSavingsFormSchema),
     defaultValues: {
       targetAmount: 0,
+      amountPerFrequency: 0,
+      numberOfMembers: 0,
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
     },
   });
 
-  const onSubmit = React.useCallback((data: TargetSavingsFormSchema) => {
-    mutate({
-      campaign_title: data.title,
-      campaign_story: data.story,
-      target_amount: data.targetAmount,
-      campaign_category: data.category,
-      is_personal: data.personal,
-      state: data.state,
-      images: data.images,
-    });
+  const onSubmit = React.useCallback((data: GroupSavingsFormSchema) => {
+    // mutate({
+    //   campaign_title: data.title,
+    //   campaign_story: data.story,
+    //   target_amount: data.targetAmount,
+    //   campaign_category: data.category,
+    //   is_personal: data.personal,
+    //   state: data.state,
+    //   images: data.images,
+    // });
   }, []);
   return (
     <>
@@ -105,7 +97,7 @@ export default function CreateCampaignScreen() {
           title: "Create Campaign",
         }}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: theme.white2.val,
@@ -121,13 +113,13 @@ export default function CreateCampaignScreen() {
             <YStack gap="$4">
               <Controller
                 control={control}
-                name="title"
+                name="name"
                 render={({
                   field: { onBlur, value, onChange },
                   formState: { errors },
                 }) => (
                   <Input size="md" minWidth="100%" variant="grey">
-                    <Input.Label mb="$1.5">Campaign title</Input.Label>
+                    <Input.Label mb="$1.5">Group Name</Input.Label>
                     <Input.Box>
                       <Input.Area
                         placeholder="Enter title"
@@ -135,33 +127,35 @@ export default function CreateCampaignScreen() {
                         {...{ onBlur, value }}
                       />
                     </Input.Box>
-                    {errors.title ? (
-                      <Input.SubText error>
-                        {errors.title.message}
-                      </Input.SubText>
+                    {errors.name ? (
+                      <Input.SubText error>{errors.name.message}</Input.SubText>
                     ) : null}
                   </Input>
                 )}
               />
+
               <Controller
                 control={control}
-                name="story"
+                name="numberOfMembers"
                 render={({
                   field: { onBlur, value, onChange },
                   formState: { errors },
                 }) => (
                   <Input size="md" minWidth="100%" variant="grey">
-                    <Input.Label mb="$1.5">Campaign story</Input.Label>
+                    <Input.Label mb="$1.5">
+                      Number of members in the group
+                    </Input.Label>
                     <Input.Box>
                       <Input.Area
-                        placeholder="Enter story"
+                        placeholder="₦0.00"
                         onChangeText={onChange}
-                        {...{ onBlur, value }}
+                        keyboardType="number-pad"
+                        {...{ onBlur, value: String(value) }}
                       />
                     </Input.Box>
-                    {errors.story ? (
+                    {errors.numberOfMembers ? (
                       <Input.SubText error>
-                        {errors.story.message}
+                        {errors.numberOfMembers.message}
                       </Input.SubText>
                     ) : null}
                   </Input>
@@ -175,7 +169,9 @@ export default function CreateCampaignScreen() {
                   formState: { errors },
                 }) => (
                   <Input size="md" minWidth="100%" variant="grey">
-                    <Input.Label mb="$1.5">Goal amount</Input.Label>
+                    <Input.Label mb="$1.5">
+                      How much are you aiming to save
+                    </Input.Label>
                     <Input.Box>
                       <Input.Area
                         placeholder="₦0.00"
@@ -193,132 +189,75 @@ export default function CreateCampaignScreen() {
                 )}
               />
 
-              <Controller
-                control={control}
-                name="images"
-                render={({
-                  field: { onBlur, value, onChange },
-                  formState: { errors },
-                }) => (
-                  <Input size="md" minWidth="100%" variant="grey">
-                    <Input.Label mb="$1.5">
-                      Upload campaign photos (max 3)
-                    </Input.Label>
-                    <Input.ImagePicker value={value} onChange={onChange} />
-                    {errors.images ? (
-                      <Input.SubText error>
-                        {errors.images.message}
-                      </Input.SubText>
-                    ) : null}
-                  </Input>
-                )}
-              />
-              <Controller
-                control={control}
-                name="state"
-                render={({
-                  field: { onBlur, value, onChange },
-                  formState: { errors },
-                }) => (
-                  <Input size="md" minWidth="100%" variant="grey">
-                    <Input.Label mb="$1.5">
-                      What state/country are you from?
-                    </Input.Label>
-                    <Input.Box>
-                      <Input.Area
-                        placeholder="Enter your state"
-                        onChangeText={onChange}
-                        {...{ onBlur, value }}
-                      />
-                    </Input.Box>
-                    {errors.state ? (
-                      <Input.SubText error>
-                        {errors.state.message}
-                      </Input.SubText>
-                    ) : null}
-                  </Input>
-                )}
-              />
+              <Input size="md" minWidth="100%" variant="grey">
+                <Input.Label mb="$1.5">Starting & Withdrawal Date</Input.Label>
 
+                <XStack gap="$2">
+                  <Controller
+                    control={control}
+                    name="startDate"
+                    render={({
+                      field: { value, onChange },
+                      formState: { errors },
+                    }) => (
+                      <XStack f={1}>
+                        <Input.Box>
+                          <Input.DatePicker
+                            value={value ? new Date(value) : new Date()}
+                            mode="date"
+                            onChange={(event, date) =>
+                              date
+                                ? onChange(new Date(date).toISOString())
+                                : null
+                            }
+                          />
+                        </Input.Box>
+                        {errors.startDate ? (
+                          <Input.SubText error>
+                            {errors.startDate.message}
+                          </Input.SubText>
+                        ) : null}
+                      </XStack>
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="endDate"
+                    render={({
+                      field: { value, onChange },
+                      formState: { errors },
+                    }) => (
+                      <XStack f={1}>
+                        <Input.Box>
+                          <Input.DatePicker
+                            value={value ? new Date(value) : new Date()}
+                            mode="date"
+                            onChange={(event, date) =>
+                              date
+                                ? onChange(new Date(date).toISOString())
+                                : null
+                            }
+                          />
+                        </Input.Box>
+                        {errors.endDate ? (
+                          <Input.SubText error>
+                            {errors.endDate.message}
+                          </Input.SubText>
+                        ) : null}
+                      </XStack>
+                    )}
+                  />
+                </XStack>
+              </Input>
               <Controller
                 control={control}
-                name="personal"
+                name="frequency"
                 render={({
                   field: { onBlur, value, onChange },
                   formState: { errors },
                 }) => (
                   <Input variant="grey" size="md" minWidth="100%">
-                    <Input.Label mb="$1.5">
-                      Is this campaign for your or someone else
-                    </Input.Label>
-                    <Input.Box>
-                      <Select
-                        value={value ? "true" : "false"}
-                        onValueChange={(value) => {
-                          onChange(eval(value) as boolean);
-                        }}
-                      >
-                        <Select.Trigger
-                          unstyled
-                          h="full"
-                          bg="$colorTransparent"
-                          flex={1}
-                        >
-                          <Select.Value placeholder="Select option" />
-                        </Select.Trigger>
-                        <Adapt when="sm" platform="touch">
-                          <Sheet
-                            modal
-                            snapPointsMode="fit"
-                            dismissOnSnapToBottom
-                          >
-                            <Sheet.Handle />
-                            <Sheet.Frame>
-                              <Text fow="500" fos="$4" ta="center" py="$4">
-                                Select option
-                              </Text>
-                              <Adapt.Contents />
-                              <View h="$6" />
-                            </Sheet.Frame>
-                            <Sheet.Overlay />
-                          </Sheet>
-                        </Adapt>
-                        <Select.Content>
-                          <Select.Viewport>
-                            {[false, true].map((key, i) => {
-                              return (
-                                <Select.Item
-                                  index={i}
-                                  key={String(key)}
-                                  value={String(key)}
-                                >
-                                  <Select.ItemText>
-                                    {key ? "Yes" : "No"}
-                                  </Select.ItemText>
-                                </Select.Item>
-                              );
-                            })}
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select>
-                    </Input.Box>
-                    {errors.personal ? (
-                      <Input.SubText error>
-                        {errors.personal.message}
-                      </Input.SubText>
-                    ) : null}
-                  </Input>
-                )}
-              />
-              <Controller
-                control={control}
-                name="category"
-                render={({
-                  field: { onBlur, value, onChange },
-                  formState: { errors },
-                }) => (
-                  <Input variant="grey" size="md" minWidth="100%">
-                    <Input.Label mb="$1.5">Campaign category</Input.Label>
+                    <Input.Label mb="$1.5">Savings Frequency Mode</Input.Label>
                     <Input.Box>
                       <Select value={value} onValueChange={onChange}>
                         <Select.Trigger
@@ -327,7 +266,7 @@ export default function CreateCampaignScreen() {
                           bg="$colorTransparent"
                           flex={1}
                         >
-                          <Select.Value placeholder="Select option" />
+                          <Select.Value placeholder="Select Savings frequency" />
                         </Select.Trigger>
                         <Adapt when="sm" platform="touch">
                           <Sheet
@@ -338,7 +277,7 @@ export default function CreateCampaignScreen() {
                             <Sheet.Handle />
                             <Sheet.Frame>
                               <Text fow="500" fos="$4" ta="center" py="$4">
-                                Select option
+                                Choose Frequency
                               </Text>
                               <Adapt.Contents />
                               <View h="$6" />
@@ -348,11 +287,11 @@ export default function CreateCampaignScreen() {
                         </Adapt>
                         <Select.Content>
                           <Select.Viewport>
-                            {campaignCategories.map((key, i) => {
+                            {Object.keys(frequencyOptions).map((key, i) => {
                               return (
                                 <Select.Item index={i} key={key} value={key}>
-                                  <Select.ItemText tt="capitalize">
-                                    {key}
+                                  <Select.ItemText>
+                                    {frequencyOptions[key]}
                                   </Select.ItemText>
                                 </Select.Item>
                               );
@@ -361,21 +300,48 @@ export default function CreateCampaignScreen() {
                         </Select.Content>
                       </Select>
                     </Input.Box>
-                    {errors.category ? (
+                    {errors.frequency ? (
                       <Input.SubText error>
-                        {errors.category.message}
+                        {errors.frequency.message}
+                      </Input.SubText>
+                    ) : null}
+                  </Input>
+                )}
+              />
+              <Controller
+                control={control}
+                name="amountPerFrequency"
+                render={({
+                  field: { onBlur, value, onChange },
+                  formState: { errors },
+                }) => (
+                  <Input size="md" minWidth="100%" variant="grey">
+                    <Input.Label mb="$1.5">
+                      How much do each member want to save per frequency
+                    </Input.Label>
+                    <Input.Box>
+                      <Input.Area
+                        placeholder="₦0.00"
+                        onChangeText={onChange}
+                        keyboardType="number-pad"
+                        {...{ onBlur, value: String(value) }}
+                      />
+                    </Input.Box>
+                    {errors.amountPerFrequency ? (
+                      <Input.SubText error>
+                        {errors.amountPerFrequency.message}
                       </Input.SubText>
                     ) : null}
                   </Input>
                 )}
               />
             </YStack>
-            <Button loading={isPending} onPress={handleSubmit(onSubmit)}>
-              <Button.Text>Create</Button.Text>
-            </Button>
           </YStack>
+          <Button loading={isPending} onPress={handleSubmit(onSubmit)}>
+            <Button.Text>Create</Button.Text>
+          </Button>
         </YStack>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </>
   );
 }

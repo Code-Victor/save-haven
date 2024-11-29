@@ -222,3 +222,10 @@ export interface Donor {
   bank_name: string;
 }
 export interface WithdrawCampaignResponse extends BaseResponse {}
+export interface GetCampaignLeaderboardResponse extends BaseResponse {
+  status: number;
+  data: {
+    name: string;
+    total_amount: number;
+  }[];
+}

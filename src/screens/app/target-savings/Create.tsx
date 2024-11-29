@@ -22,6 +22,7 @@ import * as React from "react";
 import { targetSavingRouter } from "@/api/routers";
 import { isAxiosErrorWithMessage } from "@/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const frequencyOptions = {
   DAILY: "Daily",
@@ -110,7 +111,7 @@ export default function CreateTargetSavingsScreen() {
           title: "Create Target Savings",
         }}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: theme.white2.val,
@@ -385,7 +386,7 @@ export default function CreateTargetSavingsScreen() {
             </Button>
           </YStack>
         </YStack>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </>
   );
 }

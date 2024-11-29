@@ -1,4 +1,4 @@
-import { Redirect, Stack } from "expo-router";
+import { Redirect, Slot } from "expo-router";
 import { useStore } from "@/stores";
 export default function ProtectedLayout() {
   const user = useStore((s) => s.user);
@@ -7,7 +7,7 @@ export default function ProtectedLayout() {
   }
 
   return (
-    <Stack
+    <Slot
       initialRouteName="/(tabs)/"
       screenOptions={{
         headerShown: false,

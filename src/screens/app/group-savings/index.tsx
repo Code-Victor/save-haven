@@ -1,9 +1,9 @@
 import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
 import { savingsOptions } from "@/data";
 import { Image } from "expo-image";
-import { Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScrollView, useTheme, View, XStack, YStack } from "tamagui";
+import { Link, Stack } from "expo-router";
 
 export default function GroupSavingsScreen() {
   const theme = useTheme();
@@ -32,9 +32,18 @@ export default function GroupSavingsScreen() {
             ))}
           </YStack>
         </YStack>
-        <Button mt="$16">
-          <Button.Text>Create Target Saving</Button.Text>
-        </Button>
+        <YStack gap="$2" mt="$12">
+          <Link href="/(protected)/group-savings/all" asChild>
+            <Button variant="outlined">
+              <Button.Text>View all Campaigns</Button.Text>
+            </Button>
+          </Link>
+          <Link href="/(protected)/group-savings/create" asChild>
+            <Button>
+              <Button.Text>Create Campaign</Button.Text>
+            </Button>
+          </Link>
+        </YStack>
         <YStack gap="$4" pt="$3"></YStack>
       </ScrollView>
     </>

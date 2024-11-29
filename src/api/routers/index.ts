@@ -86,4 +86,7 @@ export const crowdfundingRouter = router("crowdfunding", {
   withdraw: router.mutation({
     mutationFn: api.withdrawCampaignSavings,
   }),
+  leaderboard: router.query({
+    fetcher: api.getCampaignLeaderboard,
+  }),
 });

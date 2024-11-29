@@ -52,7 +52,7 @@ export function isNonEmptyArray<T>(arr: T[]): arr is [T, ...T[]] {
 export function getAvatar({ name }: { name: string }) {
   if (name !== "guest") {
     return {
-      uri: `https://api.dicebear.com/9.x/adventurer-neutral/svg?seed=${name}&backgroundColor=763900,9e5622,ecad80,f2d3b1`,
+      uri: `https://api.dicebear.com/9.x/open-peeps/svg?seed=${name}&backgroundColor=763900,9e5622,ecad80,f2d3b1`,
     };
   }
   return require("@/assets/images/icon.svg");

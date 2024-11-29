@@ -258,6 +258,12 @@ export const getCampaignTransactions = async ({ id }: { id: string }) => {
   return res.data;
 };
 
+export const withdrawTargetSavings = async ({ id }: { id: string }) => {
+  const res = await api.post<ApiTypes.WithdrawTargetSavingsResponse>(
+    "/target-savings/withdraw/" + id
+  );
+  return res.data;
+};
 // #endregion
 
 //#region Crowdfunding
@@ -309,9 +315,9 @@ export const shareCampaign = async ({ id }: { id: string }) => {
   return res.data;
 };
 
-export const withdrawTargetSavings = async ({ id }: { id: string }) => {
-  const res = await api.post<ApiTypes.WithdrawTargetSavingsResponse>(
-    "/target-savings/withdraw/" + id
+export const getCampaignLeaderboard = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetCampaignLeaderboardResponse>(
+    "crowdfunding/campaigns/leaderboard/" + id
   );
   return res.data;
 };

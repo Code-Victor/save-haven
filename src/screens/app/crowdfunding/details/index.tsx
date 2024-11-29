@@ -45,7 +45,6 @@ export default function CrowdfundingDetails() {
   });
 
   const isOriginalPoster = user._id === crowdfundingCampaign?.user;
-
   return (
     <>
       <Stack.Screen
@@ -344,21 +343,28 @@ function ReportPane({ id }: { id: string }) {
         return data.data;
       },
     });
+  const { data: leaderboard, isLoading: isLoadingLeaderboard } =
+    crowdfundingRouter.leaderboard.useQuery({
+      variables: { id },
+      select(data) {
+        return data.data;
+      },
+    });
   const targetAmount = crowdfundingCampaign?.target_amount ?? 0;
   const amountRaised = crowdfundingCampaign?.amount_raised ?? 0;
   return (
     <YStack bg="$white1" br={16} px="$4" pb="$4" gap="$2">
       <XStack ai="center" jc="space-between">
         <Text fow="600" fos="$2">
-          Saving Report
+          Campaign Report
         </Text>
       </XStack>
-      {isLoading ? (
+      {isLoading || isLoadingLeaderboard ? (
         <YStack ai="center" jc="center" minHeight="$6">
           <Spinner size="large" color="$purple6" scale={1.5} />
         </YStack>
       ) : (
-        <YStack gap="$6">
+        <YStack gap="$4">
           <XStack px="$4" py="$2" br={8} jc="space-between" bg="$purple1">
             <YStack gap="$1">
               <Text fow="600" fos="$2" color="$black4">
@@ -377,6 +383,41 @@ function ReportPane({ id }: { id: string }) {
               </Text>
             </YStack>
           </XStack>
+          <YStack gap="$3">
+            <Text fow="600" fos="$2">
+              Top Donors
+            </Text>
+            <YStack gap="$1.5">
+              {leaderboard?.slice(0, 3).map(({ name, total_amount }, i) => (
+                <XStack
+                  key={i}
+                  ai="center"
+                  px="$4"
+                  py="$2"
+                  br={8}
+                  bg="$purple1"
+                >
+                  <Text
+                    fow="600"
+                    fos="$2"
+                    color="$black4"
+                    mr="$1"
+                    numberOfLines={2}
+                  >
+                    {`${i + 1}.`}
+                  </Text>
+                  <XStack f={1}>
+                    <Text fow="600" fos="$2" color="$black4" numberOfLines={2}>
+                      {name}
+                    </Text>
+                  </XStack>
+                  <Text fow="600" color="$purple6">
+                    {monify(total_amount)}
+                  </Text>
+                </XStack>
+              ))}
+            </YStack>
+          </YStack>
         </YStack>
       )}
     </YStack>
