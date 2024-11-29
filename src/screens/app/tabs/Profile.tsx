@@ -30,10 +30,8 @@ export default function ProfileTab() {
 
 function ProfilePane() {
   const user = useStore((s) => s.user!);
-  const userName = React.useMemo(
-    () => `${user.first_name} ${user.last_name}`,
-    [user.first_name, user.last_name]
-  );
+  const userName = React.useMemo(() => user.name.trim(), [user.name]);
+
   const avatarUrl = React.useMemo(
     () => getAvatar({ name: userName }),
     [userName]

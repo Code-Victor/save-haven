@@ -17,7 +17,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Alert, Share } from "react-native";
-
+import { Donut } from "@/components/Donut";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import {
@@ -27,10 +27,13 @@ import {
   XStack,
   YStack,
   useTheme,
+  Tabs,
   useWindowDimensions,
+  SizableText,
 } from "tamagui";
 import { unknown, z } from "zod";
 
+// #region Target Savings
 export default function TargetSavingDetails() {
   const theme = useTheme();
   const { name, id } = useLocalSearchParams<{ name: string; id: string }>();
@@ -54,13 +57,15 @@ export default function TargetSavingDetails() {
       >
         <YStack gap="$3.5">
           <PreviewCard id={id} name={name} />
-          <TransactionsPane id={id} />
+          <InfoTabs id={id} />
         </YStack>
       </RefreshScrollView>
     </>
   );
 }
+// #endregion
 
+// #region Preview Card
 function PreviewCard({ name, id }: { id: string; name: string }) {
   const { mutate: withdraw, isPending: isWithdrawing } =
     targetSavingRouter.withdraw.useMutation({
@@ -107,7 +112,7 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
     <YStack bg="$white1" gap="$3" pb="$4" br={16}>
       <YStack ai="center" py="$6" px="$4" gap="$2" bg="$purple6" br={16}>
         <XStack>
-          <YStack f={1}>
+          <YStack f={1} gap="$1">
             <Text fow="500" color="$white1">
               {name ?? targetSaving?.savings_name}
             </Text>
@@ -121,20 +126,6 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
             </Button.Icon>
             <Button.Text>Share</Button.Text>
           </Button>
-        </XStack>
-        <XStack ai="center" gap="$2">
-          <Progress
-            flex={1}
-            size="$2"
-            value={percentage}
-            max={100}
-            bg="$purple1"
-          >
-            <Progress.Indicator animation="100ms" br="$4" bg="$purple4" />
-          </Progress>
-          <Text fos="$1" fow="600" color="$white1">
-            {percentage}%
-          </Text>
         </XStack>
       </YStack>
 
@@ -168,7 +159,46 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
     </YStack>
   );
 }
+// #endregion
 
+// #region InfoTabs
+function InfoTabs({ id }: { id: string }) {
+  return (
+    <Tabs
+      flexDirection="column"
+      orientation="horizontal"
+      defaultValue="transaction"
+      bg="$white1"
+      br={16}
+    >
+      <Tabs.List
+        disablePassBorderRadius
+        aria-label="Manage your account"
+        borderBottomWidth={1}
+        borderBottomColor="$black025"
+        mb="$2"
+        gap="$2"
+        p="$1"
+      >
+        <Tabs.Tab size="$3" value="transaction" f={1}>
+          <SizableText>Transactions</SizableText>
+        </Tabs.Tab>
+        <Tabs.Tab size="$3" value="report" f={1}>
+          <SizableText>Report</SizableText>
+        </Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content value="transaction">
+        <TransactionsPane id={id} />
+      </Tabs.Content>
+      <Tabs.Content value="report">
+        <ReportPane id={id} />
+      </Tabs.Content>
+    </Tabs>
+  );
+}
+// #endregion
+
+// #region Transactions Pane
 function TransactionsPane({ id }: { id: string }) {
   const { width } = useWindowDimensions();
   const theme = useTheme();
@@ -185,7 +215,7 @@ function TransactionsPane({ id }: { id: string }) {
   useRegisterRefetch(refetchTransactions);
 
   return (
-    <YStack bg="$white1" br={16} p="$5" gap="$2">
+    <YStack bg="$white1" br={16} px="$4" pb="$4" gap="$2">
       <XStack ai="center" jc="space-between">
         <Text fow="600" fos="$2">
           Transaction History
@@ -238,7 +268,76 @@ function TransactionsPane({ id }: { id: string }) {
     </YStack>
   );
 }
+// #endregion
 
+// #region Report Pane
+function ReportPane({ id }: { id: string }) {
+  const { width } = useWindowDimensions();
+  const theme = useTheme();
+  const {
+    data: targetSaving,
+    refetch: refetchTargetSaving,
+    isLoading,
+  } = targetSavingRouter.getById.useQuery({
+    variables: { id },
+  });
+  const targetAmount = targetSaving?.target_amount ?? 0;
+  const amountSaved = targetSaving?.amount_saved ?? 0;
+
+  const percentage = React.useMemo(() => {
+    return Math.round((amountSaved / targetAmount) * 100);
+  }, [amountSaved, targetAmount]);
+  return (
+    <YStack bg="$white1" br={16} px="$4" pb="$4" gap="$2">
+      <XStack ai="center" jc="space-between">
+        <Text fow="600" fos="$2">
+          Saving Report
+        </Text>
+      </XStack>
+      {isLoading ? (
+        <YStack ai="center" jc="center" minHeight="$6">
+          <Spinner size="large" color="$purple6" scale={1.5} />
+        </YStack>
+      ) : (
+        <YStack gap="$6">
+          <XStack px="$4" py="$2" br={8} jc="space-between" bg="$purple1">
+            <YStack gap="$1">
+              <Text fow="600" fos="$2" color="$black4">
+                Target Amount
+              </Text>
+              <Text fow="600" color="$purple6">
+                {monify(targetAmount)}
+              </Text>
+            </YStack>
+            <YStack gap="$1">
+              <Text ta="right" fow="600" fos="$2" color="$green9">
+                Amount Saved
+              </Text>
+              <Text ta="right" fow="600" color="$green9">
+                {monify(amountSaved)}
+              </Text>
+            </YStack>
+          </XStack>
+          <YStack ai="center" jc="center">
+            <Donut {...{ percentage, radius: 90, strokeWidth: 12 }}>
+              <YStack ai="center" jc="center">
+                <Text fow="600" fos="$2" color="$black4">
+                  {percentage}%
+                </Text>
+                <Text fow="600" fos="$1" color="$black4">
+                  Completed
+                </Text>
+              </YStack>
+            </Donut>
+          </YStack>
+        </YStack>
+      )}
+    </YStack>
+  );
+}
+// #endregion
+
+// #region Deposit Button
 const depositSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive").gt(0),
 });
@@ -483,3 +582,4 @@ function DepositButton({ id }: { id: string }) {
     </>
   );
 }
+// #endregion

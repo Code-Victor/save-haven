@@ -14,7 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner-native";
 import { View, YStack } from "tamagui";
 import { z } from "zod";
-import { isAxiosErrorWithMessage } from "@/utils";
+import { handleError } from "@/utils";
 import {
   KeyboardAwareScrollView,
   KeyboardGestureArea,
@@ -49,12 +49,7 @@ const Signup = () => {
         },
       });
     },
-    onError: (err) => {
-      if (isAxiosErrorWithMessage(err)) {
-        toast.error(err?.response?.data.message ?? "An error occurred");
-      }
-      toast.error("An error occurred");
-    },
+    onError: handleError(),
   });
   const router = useRouter();
   const { control, handleSubmit } = useForm<SignupFormSchema>({

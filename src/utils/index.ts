@@ -234,7 +234,7 @@ export function handleError(
       };
 
       let message =
-        customMessage || error.response?.data?.message || "An error occurred";
+        customMessage || error.response?.data?.detail || "An error occurred";
 
       console[ERROR_SEVERITY_CONSOLE_METHOD[severity]](
         `[${severity.toUpperCase()}] ${message}`,

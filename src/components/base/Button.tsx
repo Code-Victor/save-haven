@@ -159,7 +159,7 @@ export const ButtonContainer = styled(View, {
   variants: {
     size: {
       sm: {
-        gap: 6.25,
+        gap: 6.75,
       },
       md: {
         gap: 8.75,

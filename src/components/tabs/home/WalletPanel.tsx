@@ -127,10 +127,13 @@ function AccountNumberBtn(props: WalletDetailsResponse) {
           },
         ],
       }}
+      gap="$2"
     >
-      <Text fow="600" fos="$2" color="$white1">
-        {props.account_name}
-      </Text>
+      <View f={1}>
+        <Text fow="600" fos="$2" color="$white1" numberOfLines={1}>
+          {props.account_name}
+        </Text>
+      </View>
       <XStack ai="center" gap="$2">
         <Text color="$white1" fos="$2">
           {props.account_number}
@@ -216,7 +219,7 @@ function FundWalletButton(props: WalletDetailsResponse) {
         <Button.Icon>
           <Icon name="ri:add-circle-fill" size={24} />
         </Button.Icon>
-        <Button.Text>Fund Wallet</Button.Text>
+        <Button.Text>Top up</Button.Text>
       </Button>
       <BottomSheetModal
         ref={bottomSheetModalRef}

@@ -6,10 +6,7 @@ import * as React from "react";
 import { getAvatar } from "@/utils";
 export function ProfilePanel() {
   const user = useStore((s) => s.user!);
-  const userName = React.useMemo(
-    () => `${user.first_name} ${user.last_name}`,
-    [user.first_name, user.last_name]
-  );
+  const userName = React.useMemo(() => user.name.trim(), [user.name]);
   const avatarUrl = React.useMemo(
     () => getAvatar({ name: userName }),
     [userName]
@@ -32,7 +29,7 @@ export function ProfilePanel() {
       />
       <View f={1}>
         <Text fow="500" color="#333333">
-          {`Hello, ${user.first_name} ${user.last_name}`}
+          {`Hello, ${userName}`}
         </Text>
       </View>
       <XStack gap="$1">

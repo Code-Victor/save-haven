@@ -24,10 +24,10 @@ export interface User {
   role: string;
   is_active: boolean;
   is_verified: boolean;
-  first_name: string;
-  last_name: string;
+  name: string;
   telephone_no: string;
 }
+
 export interface FundWalletResponse extends BaseResponse {
   transaction_reference: string;
 }
