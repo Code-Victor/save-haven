@@ -23,15 +23,10 @@ export async function redirectSystemPath({
         res.data.transaction_ref
       );
     } else if (path.includes("group-savings")) {
-      const res = z
-        .object({ id: z.string(), transaction_ref: z.string() })
-        .safeParse(queryParams ?? {});
+      const res = z.object({ ref: z.string() }).safeParse(queryParams ?? {});
       if (!res.success) return "/(protected)/(tabs)/";
       return (
-        "/(protected)/group-savings/accept/" +
-        res.data.id +
-        "?transaction_ref=" +
-        res.data.transaction_ref
+        "/(protected)/group-savings/join" + "?transaction_ref=" + res.data.ref
       );
     }
   }

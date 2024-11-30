@@ -104,7 +104,7 @@ export const ButtonFrame = styled(View, {
         borderWidth: 1,
         borderColor: "$purple2",
         pressStyle: {
-          backgroundColor: "$green3",
+          backgroundColor: "$purple3",
         },
       },
       "secondary-light": {
@@ -341,6 +341,9 @@ export const ButtonText = styled(Text, {
       primary: {
         color: "$white2",
       },
+      "primary-light": {
+        color: "$purple6",
+      },
       secondary: {
         color: "$purple9",
       },
@@ -370,6 +373,7 @@ const ButtonIcon = (props: { children: IconType }) => {
   const iconColor = React.useMemo(
     () => ({
       primary: theme.white2.val,
+      "primary-light": theme.purple6.val,
       secondary: theme.purple9.val,
       "secondary-light": theme.purple9.val,
       outlined: theme.purple9.val,
@@ -401,6 +405,7 @@ const IconButtonIcon = (props: { children: IconType }) => {
   const iconColor = React.useMemo(
     () => ({
       primary: theme.white2.val,
+      "primary-light": theme.purple6.val,
       secondary: theme.purple9.val,
       "secondary-light": theme.purple9.val,
       outlined: theme.purple9.val,

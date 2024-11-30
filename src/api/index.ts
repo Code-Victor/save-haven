@@ -8,7 +8,7 @@ import { Cloudinary } from "@cloudinary/url-gen";
 const BASE_URL = "https://genetic-holli-yayako-30b6a681.koyeb.app";
 const IS_DEV = process.env.NODE_ENV === "development";
 const api = axios.create({
-  baseURL: IS_DEV ? "https://fnh8hw9m-8000.uks1.devtunnels.ms/" : BASE_URL,
+  baseURL: BASE_URL,
 });
 
 // Error logger
@@ -265,6 +265,7 @@ export const withdrawTargetSavings = async ({ id }: { id: string }) => {
   );
   return res.data;
 };
+
 // #endregion
 
 //#region Crowdfunding
@@ -372,9 +373,30 @@ export const fundGroupSavingsFromWallet = async ({
 };
 
 export const getGroupSavingsTransactions = async ({ id }: { id: string }) => {
-  const res = await api.get<any>("group-savings/transactions/" + id);
+  const res = await api.get<ApiTypes.GetGroupSavingsTransactionsResponse>(
+    `group-savings/${id}/transactions`
+  );
   return res.data;
 };
+export const getGroupSavingsDetails = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetGroupSavingsDetailsResponse>(
+    "group-savings/details/" + id
+  );
+  return res.data;
+};
+export const getGroupSavingsLeaderboard = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetGroupSavingsLeaderboardResponse>(
+    "group-savings/leaderboard/" + id
+  );
+  return res.data;
+};
+export const joinGroupSavings = async ({ reference }: { reference: string }) => {
+  const res = await api.post<{message:string}>(
+    "group-savings/join/" + reference
+  );
+  return res.data;
+};
+
 // #endregion
 
 //#region Webhook API functions

@@ -109,6 +109,17 @@ export const groupSavingsRouter = router("group-savings", {
     fetcher: api.getGroupSavingsTransactions,
     refetchInterval: MINUTE,
   }),
+  getDetails: router.query({
+    fetcher: api.getGroupSavingsDetails,
+    refetchInterval: MINUTE,
+  }),
+  getLeaderboard: router.query({
+    fetcher: api.getGroupSavingsLeaderboard,
+    refetchInterval: MINUTE,
+  }),
+  join: router.mutation({
+    mutationFn: api.joinGroupSavings,
+  }),
   // fundAccount: router.mutation({
   //   mutationFn: api.fundGroupSavingAccount,
   // }),

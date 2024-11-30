@@ -282,3 +282,60 @@ export interface FundGroupSavingsFromWalletResponse {
     transaction_reference: string;
   };
 }
+
+export interface GetGroupSavingsTransactionsResponse {
+  items: {
+    id: string;
+    saving_reference_id: null;
+    transaction_reference: string;
+    transaction_status: string;
+    amount: number;
+    transaction_type: string;
+    createdAt: string;
+  }[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface GetGroupSavingsLeaaderboardResponse {
+  message: string;
+  data: {
+    user: string;
+    amount_saved: number;
+    savings_reference_id: string;
+    date_joined: Date;
+    name: string;
+    phone_number: string;
+  }[];
+}
+
+export interface GetGroupSavingsDetailsResponse {
+  message: string;
+  data: {
+    group_name: string;
+    group_target: number;
+    withdrawal_date: Date;
+    members: Member[];
+    amount_saved: number;
+  };
+}
+export interface Member {
+  name: string;
+  phone_number: string;
+}
+
+export interface GetGroupSavingsLeaderboardResponse {
+  message: string;
+  data: LeaderboardItem[];
+}
+
+export interface LeaderboardItem {
+  user: string;
+  amount_saved: number;
+  savings_reference_id: string;
+  date_joined: Date;
+  name: string;
+  phone_number: string;
+}

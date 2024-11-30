@@ -5,6 +5,7 @@ import NotFound from "./not-found.svg";
 import Subscription from "./subscription.svg";
 import TargetSaving from "./target-saving.svg";
 import Target from "./target.svg";
+import UserCommunity from "./user-community.svg";
 
 export const icons = {
   "save-haven-emblem": SaveHavenEmblem,
@@ -14,4 +15,5 @@ export const icons = {
   "target-saving": TargetSaving,
   target: Target,
   "not-found": NotFound,
+  "user-community": UserCommunity,
 };

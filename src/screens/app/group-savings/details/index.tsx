@@ -17,7 +17,7 @@ import { handleError, monify, paymentGenerator } from "@/utils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Alert, Share } from "react-native";
@@ -84,6 +84,12 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
     });
   useRegisterRefetch(refetchGroupSaving);
   const isLocked = groupSaving?.is_locked ?? true;
+  const onShare = React.useCallback(async () => {
+    const url = `${FRONTEND_URL}/group-savings?ref=${groupSaving?.group_reference}`;
+    Share.share({
+      message: url,
+    });
+  }, [id, groupSaving?.group_reference]);
 
   const onWithdrawPress = React.useCallback(() => {
     Alert.alert(
@@ -119,7 +125,7 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
               {monify(groupSaving?.total_amount_saved ?? 0)}
             </Text>
           </YStack>
-          <Button size="sm" bg="$purple4">
+          <Button size="sm" bg="$purple4" onPress={onShare}>
             <Button.Icon>
               <Icon name="ri:share-forward-line" />
             </Button.Icon>
@@ -154,6 +160,42 @@ function PreviewCard({ name, id }: { id: string; name: string }) {
           <Button.Text>Withdraw</Button.Text>
         </Button>
         <DepositButton id={id} />
+      </XStack>
+      <XStack jc="space-between" gap="$6" px="$4">
+        <Link
+          href={{
+            pathname: "/group-savings/[id]/members",
+            params: {
+              id,
+              name,
+            },
+          }}
+          asChild
+        >
+          <Button f={1} variant="primary-light">
+            <Button.Icon>
+              <Icon name="user-community" />
+            </Button.Icon>
+            <Button.Text>View Members</Button.Text>
+          </Button>
+        </Link>
+        <Link
+          href={{
+            pathname: "/group-savings/[id]/leaderboard",
+            params: {
+              id,
+              name,
+            },
+          }}
+          asChild
+        >
+          <Button f={1} variant="secondary-light">
+            <Button.Icon>
+              <Icon name="ri:medal-line" />
+            </Button.Icon>
+            <Button.Text>Leaderboard</Button.Text>
+          </Button>
+        </Link>
       </XStack>
     </YStack>
   );
@@ -206,7 +248,7 @@ function TransactionsPane({ id }: { id: string }) {
     data,
     isLoading,
     refetch: refetchTransactions,
-  } = targetSavingRouter.getTransactions.useQuery({
+  } = groupSavingsRouter.getTransactions.useQuery({
     variables: { id },
     select: (data) => data.items,
   });
@@ -273,16 +315,17 @@ function TransactionsPane({ id }: { id: string }) {
 function ReportPane({ id }: { id: string }) {
   const { width } = useWindowDimensions();
   const theme = useTheme();
-  const { data: targetSaving, isLoading } = targetSavingRouter.getById.useQuery(
+  const { data: groupSavings, isLoading } = groupSavingsRouter.getById.useQuery(
     {
       variables: { id },
     }
   );
-  const targetAmount = targetSaving?.target_amount ?? 0;
-  const amountSaved = targetSaving?.amount_saved ?? 0;
+  const targetAmount = groupSavings?.group_target ?? 0;
+  const amountSaved = groupSavings?.total_amount_saved ?? 0;
 
   const percentage = React.useMemo(() => {
-    return Math.round((amountSaved / targetAmount) * 100);
+    const res = Math.round((amountSaved / targetAmount) * 100);
+    return isNaN(res) ? 0 : res;
   }, [amountSaved, targetAmount]);
   return (
     <YStack bg="$white1" br={16} px="$4" pb="$4" gap="$2">
@@ -316,7 +359,13 @@ function ReportPane({ id }: { id: string }) {
             </YStack>
           </XStack>
           <YStack ai="center" jc="center">
-            <Donut {...{ percentage, radius: 90, strokeWidth: 12 }}>
+            <Donut
+              {...{
+                percentage: Math.min(100, percentage),
+                radius: 90,
+                strokeWidth: 12,
+              }}
+            >
               <YStack ai="center" jc="center">
                 <Text fow="600" fos="$2" color="$black4">
                   {percentage}%
