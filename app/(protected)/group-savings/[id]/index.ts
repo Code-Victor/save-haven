@@ -1,1 +1,1 @@
-export { default } from "@/screens/app/crowdfunding/details";
+export { default } from "@/screens/app/group-savings/details";

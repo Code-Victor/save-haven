@@ -1,13 +1,14 @@
 import axios, { AxiosError } from "axios";
 import { getAccessToken } from "@/utils";
 import * as ApiTypes from "./types";
-const BASE_URL = "https://genetic-holli-yayako-30b6a681.koyeb.app";
 import { Cloudinary } from "@cloudinary/url-gen";
 // import { upload } from "cloudinary-react-native";
 // const cld = new Cloudinary({ cloud: { cloudName: "dgvcc0rmr" } });
 
+const BASE_URL = "https://genetic-holli-yayako-30b6a681.koyeb.app";
+const IS_DEV = process.env.NODE_ENV === "development";
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: IS_DEV ? "https://fnh8hw9m-8000.uks1.devtunnels.ms/" : BASE_URL,
 });
 
 // Error logger
@@ -319,6 +320,59 @@ export const getCampaignLeaderboard = async ({ id }: { id: string }) => {
   const res = await api.get<ApiTypes.GetCampaignLeaderboardResponse>(
     "crowdfunding/campaigns/leaderboard/" + id
   );
+  return res.data;
+};
+// #endregion
+
+//#region Group Savings
+export const createGroupSavings = async (data: {
+  group_name: string;
+  number_in_group: number;
+  group_target: number;
+  amount_per_frequency: number;
+  start_date: Date;
+  end_date: Date;
+  saving_frequency: string;
+}) => {
+  const res = await api.post<ApiTypes.CreateGroupSavingsResponse>(
+    "group-savings/create-account",
+    data
+  );
+  return res.data;
+};
+
+export const getAllGroupSavings = async () => {
+  const res = await api.get<ApiTypes.GetAllGroupSavingsResponse>(
+    "group-savings/accounts"
+  );
+  return res.data;
+};
+export const getGroupSavingsById = async ({ id }: { id: string }) => {
+  const res = await api.get<ApiTypes.GetGroupSavingsByIdResponse>(
+    "group-savings/accounts/" + id
+  );
+  return res.data;
+};
+
+export const fundGroupSavingsFromWallet = async ({
+  id,
+  amount,
+}: {
+  id: string;
+  amount: number;
+}) => {
+  const res = await api.post<ApiTypes.FundGroupSavingsFromWalletResponse>(
+    "group-savings/fund-from-wallet/" + id,
+    null,
+    {
+      params: { amount },
+    }
+  );
+  return res.data;
+};
+
+export const getGroupSavingsTransactions = async ({ id }: { id: string }) => {
+  const res = await api.get<any>("group-savings/transactions/" + id);
   return res.data;
 };
 // #endregion

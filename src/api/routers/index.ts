@@ -90,3 +90,32 @@ export const crowdfundingRouter = router("crowdfunding", {
     fetcher: api.getCampaignLeaderboard,
   }),
 });
+
+export const groupSavingsRouter = router("group-savings", {
+  create: router.mutation({
+    mutationFn: api.createGroupSavings,
+  }),
+  getById: router.query({
+    fetcher: api.getGroupSavingsById,
+    refetchInterval: MINUTE,
+  }),
+  getAll: router.query({
+    fetcher: api.getAllGroupSavings,
+  }),
+  fundFromWallet: router.mutation({
+    mutationFn: api.fundGroupSavingsFromWallet,
+  }),
+  getTransactions: router.query({
+    fetcher: api.getGroupSavingsTransactions,
+    refetchInterval: MINUTE,
+  }),
+  // fundAccount: router.mutation({
+  //   mutationFn: api.fundGroupSavingAccount,
+  // }),
+  // withdraw: router.mutation({
+  //   mutationFn: api.withdrawGroupSavings,
+  // }),
+  // accept: router.mutation({
+  //   mutationFn: api.acceptGroupSavings,
+  // }),
+});

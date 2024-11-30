@@ -113,7 +113,8 @@ function PreviewCard({
   const amountRaised = crowdfundingCampaign?.amount_raised ?? 0;
 
   const percentage = React.useMemo(() => {
-    return Math.round((amountRaised / targetAmount) * 100);
+    const res = Math.round((amountRaised / targetAmount) * 100);
+    return isNaN(res) ? 0 : res;
   }, [amountRaised, targetAmount]);
   const onWithdrawPress = React.useCallback(() => {
     Alert.alert(

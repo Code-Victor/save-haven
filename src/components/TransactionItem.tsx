@@ -32,7 +32,7 @@ export function TransactionItem(props: {
         />
       </View>
       <YStack f={1}>
-        <Text fos="$2" color="$black1" fow="500">
+        <Text fos="$2" color="$black1" tt="capitalize" fow="500">
           {props.channel}
         </Text>
         <Text color="$black6" fos="$1">

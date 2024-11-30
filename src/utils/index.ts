@@ -69,7 +69,7 @@ export function monify(number: number) {
   return number.toLocaleString("en-NG", {
     style: "currency",
     currency: "NGN",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 1,
     minimumFractionDigits: 0,
   });
 }
@@ -232,9 +232,12 @@ export function handleError(
         severity: ErrorSeverity.ERROR,
         logToServer: false,
       };
+      const details = error.response?.data?.detail;
 
       let message =
-        customMessage || error.response?.data?.detail || "An error occurred";
+        customMessage || typeof details === "string"
+          ? details
+          : "An error occurred";
 
       console[ERROR_SEVERITY_CONSOLE_METHOD[severity]](
         `[${severity.toUpperCase()}] ${message}`,

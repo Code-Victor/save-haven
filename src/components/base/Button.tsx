@@ -23,6 +23,7 @@ import Animated, {
 type Size = "sm" | "md" | "lg";
 type Variant =
   | "primary"
+  | "primary-light"
   | "secondary"
   | "secondary-light"
   | "outlined"
@@ -98,6 +99,14 @@ export const ButtonFrame = styled(View, {
           opacity: 0.9,
         },
       },
+      "primary-light": {
+        backgroundColor: "$purple2",
+        borderWidth: 1,
+        borderColor: "$purple2",
+        pressStyle: {
+          backgroundColor: "$green3",
+        },
+      },
       "secondary-light": {
         backgroundColor: "$green2",
         borderWidth: 1,
@@ -153,7 +162,7 @@ export const ButtonFrame = styled(View, {
     rounded: "md",
   },
 });
-export const ButtonContainer = styled(View, {
+export const ButtonContainer = styled(Animated.View, {
   name: "ButtonContainer",
   flexDirection: "row",
   justifyContent: "center",
@@ -180,8 +189,8 @@ type ButtonFrameExtraProps = {
 };
 export type ButtonFrameProps = GetProps<typeof ButtonFrame> &
   ButtonFrameExtraProps;
-const AnimatedButtonContainer =
-  Animated.createAnimatedComponent(ButtonContainer);
+// const AnimatedButtonContainer =
+//   Animated.createAnimatedComponent(ButtonContainer);
 export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
   ({ loading, children, ...buttonFrameProps }, forwardedRef) => {
     const id = React.useId();
@@ -224,14 +233,16 @@ export const ButtonFrameImpl = ButtonFrame.styleable<ButtonFrameProps>(
               <Spinner color={iconColor[variant]} size={"small"} />
             </Animated.View>
           ) : (
-            <AnimatedButtonContainer
+            <ButtonContainer
               key={`btn-container-${id}`}
               onLayout={onButtonContainerLayout}
               entering={FadeInDown.springify().damping(80).stiffness(200)}
               exiting={FadeOutUp.springify().damping(80).stiffness(200)}
+              // gap="$4"
+              size={size}
             >
               {children}
-            </AnimatedButtonContainer>
+            </ButtonContainer>
           )}
         </LayoutAnimationConfig>
       </ButtonFrame>

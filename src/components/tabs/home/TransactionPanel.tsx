@@ -46,21 +46,24 @@ export function TransactionPanel() {
     if (transactions) {
       return (
         <YStack bg="$white1" br={16} px="$3" py="$4">
-          {transactions?.slice(0, 4).map((transaction) => {
-            return (
-              <TransactionItem
-                key={transaction.id}
-                channel={transaction.channel}
-                variant={
-                  transaction.transaction_type === "CREDIT"
-                    ? "received"
-                    : "sent"
-                }
-                amount={transaction.amount}
-                date={transaction.transaction_date}
-              />
-            );
-          })}
+          {transactions
+            ?.toReversed()
+            .slice(0, 4)
+            .map((transaction) => {
+              return (
+                <TransactionItem
+                  key={transaction.id}
+                  channel={transaction.channel}
+                  variant={
+                    transaction.transaction_type === "CREDIT"
+                      ? "received"
+                      : "sent"
+                  }
+                  amount={transaction.amount}
+                  date={transaction.transaction_date}
+                />
+              );
+            })}
         </YStack>
       );
     }

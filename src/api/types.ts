@@ -229,3 +229,56 @@ export interface GetCampaignLeaderboardResponse extends BaseResponse {
     total_amount: number;
   }[];
 }
+export interface CreateGroupSavingsResponse extends BaseResponse {
+  data: {
+    id: string;
+    user: string;
+    group_name: string;
+    group_target: number;
+    group_reference: string;
+    number_in_group: number;
+    saving_frequency: string;
+    start_date: Date;
+    end_date: Date;
+    amount_per_frequency: number;
+  };
+}
+
+export interface GroupSaving {
+  id: string;
+  group_name: string;
+  number_in_group: number;
+  group_target: number;
+  amount_per_frequency: number;
+  group_reference: string;
+  total_amount_saved: number;
+  start_date: Date;
+  end_date: Date;
+  user_list: string[];
+  countdown_to_end_date: number;
+  members_list: {
+    user: string;
+    amount_saved: number;
+    savings_reference_id: string;
+    date_joined: Date;
+  }[];
+  createdAt: Date;
+  saving_frequency: string;
+  status: string;
+  is_locked: boolean;
+}
+
+export interface GetGroupSavingsByIdResponse extends GroupSaving {}
+export interface GetAllGroupSavingsResponse {
+  items: GroupSaving[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+export interface FundGroupSavingsFromWalletResponse {
+  message: string;
+  data: {
+    transaction_reference: string;
+  };
+}

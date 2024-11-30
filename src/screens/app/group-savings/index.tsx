@@ -35,12 +35,12 @@ export default function GroupSavingsScreen() {
         <YStack gap="$2" mt="$12">
           <Link href="/(protected)/group-savings/all" asChild>
             <Button variant="outlined">
-              <Button.Text>View all Campaigns</Button.Text>
+              <Button.Text>View Group Savings</Button.Text>
             </Button>
           </Link>
           <Link href="/(protected)/group-savings/create" asChild>
             <Button>
-              <Button.Text>Create Campaign</Button.Text>
+              <Button.Text>Create Group Savings</Button.Text>
             </Button>
           </Link>
         </YStack>

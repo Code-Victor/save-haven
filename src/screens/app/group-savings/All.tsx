@@ -1,32 +1,29 @@
-import { Button, Icon, Text, UnifiedIconName } from "@/components/base";
+import { crowdfundingRouter, groupSavingsRouter } from "@/api/routers";
+import { Campaign, GroupSaving } from "@/api/types";
+import { Button, Icon, Text } from "@/components/base";
 import { FRONTEND_URL, TABBAR_HEIGHT_OFFSET } from "@/constants";
-import { savingsOptions } from "@/data";
-import { Image } from "expo-image";
+import { handleError, monify } from "@/utils";
 import { Link, Stack } from "expo-router";
+import * as React from "react";
+import { FlatList, ListRenderItem, RefreshControl, Share } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  ScrollView,
+  Progress,
   Spinner,
-  useTheme,
-  useWindowDimensions,
   View,
   XStack,
   YStack,
-  Progress,
+  useTheme,
+  useWindowDimensions,
 } from "tamagui";
-import * as React from "react";
-import { crowdfundingRouter } from "@/api/routers";
-import { FlatList, ListRenderItem, RefreshControl, Share } from "react-native";
-import { Campaign, TargetSaving } from "@/api/types";
-import { handleError, monify } from "@/utils";
 
-export default function CreateTargetSavingsScreen() {
+export default function CreateGroupSavingsScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
 
   const safeAreaInsets = useSafeAreaInsets();
   const { data, isLoading, isRefetching, refetch } =
-    crowdfundingRouter.getAll.useQuery({
+    groupSavingsRouter.getAll.useQuery({
       select: (data) => data.items,
     });
 
@@ -43,7 +40,7 @@ export default function CreateTargetSavingsScreen() {
               color={theme.black6.val}
             />
             <Text fow="500" fos="$4" color="$black6">
-              No Crowdfunding campaigns yet
+              No group savings yet
             </Text>
           </>
         )}
@@ -51,22 +48,27 @@ export default function CreateTargetSavingsScreen() {
     );
   }, [isLoading]);
 
-  const renderItem: ListRenderItem<Campaign> = React.useCallback(({ item }) => {
-    return (
-      <CampaignCard
-        id={item.id}
-        name={item.campaign_title}
-        targetAmount={item.target_amount}
-        amountRaised={item.amount_raised}
-      />
-    );
-  }, []);
+  const renderItem: ListRenderItem<GroupSaving> = React.useCallback(
+    ({ item }) => {
+      return (
+        <GroupSavingCard
+          id={item.id}
+          name={item.group_name}
+          targetAmount={item.group_target}
+          groupRef={item.group_reference}
+          noOfMembers={item.members_list.length}
+          maxNoOfMembers={item.number_in_group}
+        />
+      );
+    },
+    []
+  );
 
   return (
     <YStack f={1} pos="relative">
       <Stack.Screen
         options={{
-          title: "Crowdfunding Campaigns",
+          title: "Group Savings",
         }}
       />
       <FlatList
@@ -89,54 +91,46 @@ export default function CreateTargetSavingsScreen() {
         renderItem={renderItem}
         ListEmptyComponent={ListEmptyComponent}
       />
-      <Link href="/(protected)/crowdfunding/create" asChild>
+      <Link href="/(protected)/group-savings/create" asChild>
         <Button pos="absolute" bottom={48 + safeAreaInsets.bottom} right={20}>
           <Button.Icon>
-            <Icon name="ri:add-large-fill" />
+            <Icon name="ri:add-fill" />
           </Button.Icon>
-          <Button.Text>New campaign </Button.Text>
+          <Button.Text>Create</Button.Text>
         </Button>
       </Link>
     </YStack>
   );
 }
 
-function CampaignCard({
+function GroupSavingCard({
   id,
   name,
   targetAmount,
-  amountRaised,
+  groupRef,
+  noOfMembers,
+  maxNoOfMembers,
 }: {
   id: string;
   name: string;
   targetAmount: number;
-  amountRaised: number;
+  groupRef: string;
+  noOfMembers: number;
+  maxNoOfMembers: number;
 }) {
-  const { mutateAsync: shareCampaign, isPending: isLoadingTransactionRef } =
-    crowdfundingRouter.shareCampaign.useMutation({
-      onError: handleError(),
-    });
-  const percentage = React.useMemo(() => {
-    if (targetAmount === 0 && amountRaised === 0) {
-      return 100;
-    }
-    return Math.round((amountRaised / targetAmount) * 100);
-  }, [amountRaised, targetAmount]);
+  const theme = useTheme();
   const onShare = React.useCallback(async () => {
-    const res = await shareCampaign({
-      id,
-    });
-    const transactionRef = res.data.transaction_reference;
-    const url = `${FRONTEND_URL}/campaign?id=${id}&transaction_ref=${transactionRef}`;
+    const url = `${FRONTEND_URL}/group-savings?ref=${groupRef}`;
     Share.share({
       message: url,
     });
-  }, [id]);
+  }, [id, groupRef]);
+
   // const
   return (
     <Link
       href={{
-        pathname: "/(protected)/crowdfunding/[id]/",
+        pathname: "/(protected)/group-savings/[id]/",
         params: {
           name,
           id,
@@ -157,39 +151,25 @@ function CampaignCard({
             >
               {name}
             </Text>
-            <Text color="$purple5" fos="$2" fow="500">
-              <Text color="$green9" fos="$2" fow="500">
-                Progress:
-              </Text>{" "}
-              {monify(amountRaised)}
-            </Text>
-            <Text color="$purple5" fos="$2" fow="500">
-              <Text color="$green9" fos="$2" fow="500">
-                Target:
-              </Text>{" "}
+
+            <Text color="$purple9" fos="$6" fow="700">
               {monify(targetAmount)}
             </Text>
           </YStack>
-          <Button size="sm" loading={isLoadingTransactionRef} onPress={onShare}>
-            <Button.Icon>
-              <Icon name="ri:share-forward-line" />
-            </Button.Icon>
-            <Button.Text>Share</Button.Text>
-          </Button>
-        </XStack>
-        <XStack ai="center" gap="$2">
-          <Progress
-            flex={1}
-            size="$2"
-            value={percentage}
-            max={100}
-            bg="$purple3"
-          >
-            <Progress.Indicator animation="100ms" br="$4" bg="$purple6" />
-          </Progress>
-          <Text fos="$1" fow="600" color="$purple6">
-            {percentage}%
-          </Text>
+          <YStack gap="$2" ai="flex-end">
+            <Button size="sm" onPress={onShare}>
+              <Button.Icon>
+                <Icon name="ri:share-forward-line" />
+              </Button.Icon>
+              <Button.Text>Share</Button.Text>
+            </Button>
+            <XStack ai="center" gap="$1">
+              <Icon name="ri:group-fill" size={16} color={theme.purple9.val} />
+              <Text color="$purple9" fos="$2" fow="500">
+                {noOfMembers}/{maxNoOfMembers}
+              </Text>
+            </XStack>
+          </YStack>
         </XStack>
       </YStack>
     </Link>

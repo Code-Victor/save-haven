@@ -1,28 +1,17 @@
-import { Button, Icon, Text, UnifiedIconName, Input } from "@/components/base";
+import { groupSavingsRouter } from "@/api/routers";
+import { Button, Input, Text } from "@/components/base";
 import { TABBAR_HEIGHT_OFFSET } from "@/constants";
-import { savingsOptions } from "@/data";
-import { Image } from "expo-image";
-import { Stack, useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  ScrollView,
-  useTheme,
-  View,
-  XStack,
-  YStack,
-  Adapt,
-  Sheet,
-  Select,
-} from "tamagui";
-import { z } from "zod";
-import { toast } from "sonner-native";
+import { handleError } from "@/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import * as React from "react";
-import { crowdfundingRouter, targetSavingRouter } from "@/api/routers";
-import { isAxiosErrorWithMessage } from "@/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import { Stack, useRouter } from "expo-router";
+import * as React from "react";
+import { Controller, useForm } from "react-hook-form";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { toast } from "sonner-native";
+import { Adapt, Select, Sheet, View, XStack, YStack, useTheme } from "tamagui";
+import { z } from "zod";
 
 const frequencyOptions = {
   DAILY: "Daily",
@@ -44,28 +33,24 @@ export default function CreateGroupSavingsScreen() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const theme = useTheme();
-  const { mutate, isPending } = crowdfundingRouter.create.useMutation({
+  const { mutate, isPending } = groupSavingsRouter.create.useMutation({
     onSuccess(data) {
       toast.success(data.message);
       return queryClient
         .prefetchQuery(
-          crowdfundingRouter.getById.getFetchOptions({ id: data.data._id })
+          groupSavingsRouter.getById.getFetchOptions({ id: data.data.id })
         )
         .then(() =>
           router.push({
-            pathname: "/(protected)/crowdfunding/[id]/",
+            pathname: "/(protected)/group-savings/[id]/",
             params: {
-              id: data.data._id,
-              name: data.data.campaign_title,
+              id: data.data.id,
+              name: data.data.group_name,
             },
           })
         );
     },
-    onError(err) {
-      if (isAxiosErrorWithMessage(err)) {
-        toast.error(err?.response?.data.message ?? "An error occurred");
-      }
-    },
+    onError: handleError(),
   });
   const safeAreaInsets = useSafeAreaInsets();
   const { control, handleSubmit } = useForm<GroupSavingsFormSchema>({
@@ -80,15 +65,15 @@ export default function CreateGroupSavingsScreen() {
   });
 
   const onSubmit = React.useCallback((data: GroupSavingsFormSchema) => {
-    // mutate({
-    //   campaign_title: data.title,
-    //   campaign_story: data.story,
-    //   target_amount: data.targetAmount,
-    //   campaign_category: data.category,
-    //   is_personal: data.personal,
-    //   state: data.state,
-    //   images: data.images,
-    // });
+    mutate({
+      group_name: data.name,
+      number_in_group: data.numberOfMembers,
+      group_target: data.targetAmount,
+      amount_per_frequency: data.amountPerFrequency, //TODO: Fix this
+      start_date: new Date(data.startDate),
+      end_date: new Date(data.endDate),
+      saving_frequency: data.frequency,
+    });
   }, []);
   return (
     <>
